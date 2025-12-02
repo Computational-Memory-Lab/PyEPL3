@@ -1,0 +1,7 @@
+You have successfully completed the first section.
+
+Next, we want to record brain activity during your resting state.
+
+First, you will see a circle on the screen. Please keep your eyes open while the circle is on the screen (1 min). After the circle dissapears, please close your eyes and keep them closed before experimenter tells that you can open them again (1 min). You will do 2 rounds of the eyes open/eyes closed states. 
+
+<< press enter to continue >>

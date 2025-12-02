@@ -1,0 +1,13 @@
+You will see arithmetic equations.
+
+For each question, type the answer.
+
+For example, if you saw the equation:
+
+2 + 4 + 3 =
+
+the correct response would be 9.
+
+Answer as quickly as possible without sacrificing accuracy.
+
+<< press enter to continue >>
