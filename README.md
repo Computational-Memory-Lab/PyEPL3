@@ -2,7 +2,15 @@
 
 **Python Experiment Programming Library for Python 3**
 
-PyEPL3 is a modern reimplementation of PyEPL with full Python 3 support, designed for creating psychology and neuroscience experiments.
+PyEPL3 is a modern Python 3 port of the original PyEPL (Python Experiment Programming Library), designed for creating psychology and neuroscience experiments with precise timing and stimulus control.
+
+## About PyEPL
+
+This library is based on the original PyEPL developed by Sederberg et al. (2010):
+
+> Sederberg, P. B., Getz, L., Kahana, M. J., & Watrous, A. J. (2010). *PyEPL: A cross-platform experiment-programming library*. Behavior Research Methods, 42(3), 769-776. [https://doi.org/10.3758/BRM.42.3.769](https://pmc.ncbi.nlm.nih.gov/articles/PMC2839413/)
+
+PyEPL3 modernizes the original framework for Python 3, while maintaining compatibility with the core experimental design patterns.
 
 ## Features
 
@@ -172,6 +180,36 @@ rt = timestamp - pres_time
 ### Built-in Features
 No need for separate helper files - TextPool, mathDistract, and instruct are built-in.
 
+## Implementation Status
+
+### Currently Implemented (Tier 1)
+
+PyEPL3 includes all core features needed for most psychology experiments:
+
+- ✅ **Experiment framework** - Session management, configuration, data archiving
+- ✅ **Display system** - Text, images, flexible positioning, precise timing
+- ✅ **Audio playback** - Multi-format file playback, beep generation
+- ✅ **Keyboard input** - Key tracking, response collection, timestamps
+- ✅ **Mouse input** - Button and position tracking
+- ✅ **Timing system** - PresentationClock with millisecond precision
+- ✅ **Stimulus pools** - TextPool, ImagePool, SoundPool with filtering/sampling
+- ✅ **Logging system** - Automatic event logging for all tracks
+- ✅ **EEG markers** - Event logging and timestamps (ready for hardware integration)
+
+### Not Yet Implemented
+
+The following features from the original PyEPL are planned for future releases:
+
+- ❌ **Audio recording** - Microphone input (e.g., for verbal response recording)
+- ❌ **Joystick/gamepad support** - For specialized input devices
+- ❌ **Hardware EEG synchronization** - Parallel port or audio pulse sync
+- ❌ **VR/3D environments** - Specialized display modes
+- ❌ **VirtualTrack** - Advanced log file merging
+
+For most memory and cognitive experiments, the currently implemented features (Tier 1) are sufficient. Additional features can be added as needed—contact us if you require specific functionality.
+
+See [PYEPL3_BUILD_SUMMARY.md](PYEPL3_BUILD_SUMMARY.md) for detailed implementation notes.
+
 ## Contributing
 
 Contributions welcome! This is a community-maintained project for psychology and neuroscience researchers.
@@ -182,8 +220,17 @@ BSD-3-Clause (same as original PyEPL)
 
 ## Credits
 
-- Original PyEPL by Per Sederberg and others
-- PyEPL3 modernization and Python 3 port
+### Original PyEPL
+- **Per Sederberg** - Lead developer
+- **Liam Getz**
+- **Michael J. Kahana**
+- **Andrew J. Watrous**
+
+Citation: Sederberg, P. B., Getz, L., Kahana, M. J., & Watrous, A. J. (2010). PyEPL: A cross-platform experiment-programming library. *Behavior Research Methods*, 42(3), 769-776.
+
+### PyEPL3 Port
+- Python 3 modernization and enhanced features
+- Maintained by the Computational Memory Lab
 
 ## Support
 
