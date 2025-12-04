@@ -45,17 +45,16 @@ def show_proportional(video, showable, x_prop, y_prop, clk=None):
 
 def check_skip_combination():
     """
-    Check if the skip combination (L SHIFT + R SHIFT + /) is pressed.
+    Check if the skip combination (L SHIFT + R SHIFT) is pressed.
 
     Returns:
-        True if all three keys are currently pressed, False otherwise
+        True if both shift keys are currently pressed, False otherwise
     """
     keys = pygame.key.get_pressed()
     lshift = keys[pygame.K_LSHIFT]
     rshift = keys[pygame.K_RSHIFT]
-    slash = keys[pygame.K_SLASH]
 
-    return lshift and rshift and slash
+    return lshift and rshift
 
 
 def delay_with_skip(clock, duration_ms, check_interval=50):
@@ -80,9 +79,11 @@ def delay_with_skip(clock, duration_ms, check_interval=50):
         # Check for skip combination
         if check_skip_combination():
             print("  >>> SKIP COMBINATION DETECTED <<<")
-            # Fast forward the clock to the target time
-            remaining = target_time - clock.get()
-            clock.delay(remaining)
+            # Fast forward the virtual clock WITHOUT waiting
+            clock._virtual_time = target_time
+            # Sync real base so future waits don't try to catch up to skipped time
+            import time as time_module
+            clock._real_base = time_module.perf_counter() - (target_time / 1000.0)
             return True
 
         # Wait a bit before checking again
@@ -291,8 +292,10 @@ def main():
             elapsed = end_time - start_time
             print(f"  Word 2 displayed for {elapsed}ms")
 
-            # Clear screen and wait jittered IPI
+            # Show fixation cross during jittered IPI
             video.clear(BLACK)
+            fixation = Text("+", size=72, color=WHITE)
+            video.showCentered(fixation, clock)
             video.updateScreen(clock)
 
             print(f"  Inter-pair interval: {ipi}ms")
@@ -352,42 +355,30 @@ def main():
 
         #########################################
         # Create test trials
+        # Split pairs: half for associative, half for item recognition
+        # No word overlap between trial types
         #########################################
 
         test_trials = []
 
-        # 1. Item Recognition trials (4 old, 4 new)
-        indices_list = list(range(len(studied_words)))
-        random.shuffle(indices_list)
-        old_word_indices = indices_list[:4]
+        # Shuffle and split pairs into two groups
+        pair_indices = list(range(len(studied_pairs)))
+        random.shuffle(pair_indices)
+        half = len(pair_indices) // 2
 
-        for idx in old_word_indices:
-            test_trials.append({
-                'type': 'item',
-                'word': studied_words[idx]['word'],
-                'word_id': studied_words[idx]['word_id'],
-                'target': 1,  # OLD
-                'is_old': True
-            })
+        # Group A: pairs for associative recognition (half for intact, half for recombined)
+        assoc_pair_indices = pair_indices[:half]
+        # Group B: pairs for item recognition (words become old items)
+        item_pair_indices = pair_indices[half:]
 
-        # Select 4 new foil words
-        for i in range(4):
-            foil_word = probe_disp_pool.pop(0)
-            foil_id = probe_disp_pool_id.isInPool(name=foil_word.name) + 1
-            test_trials.append({
-                'type': 'item',
-                'word': foil_word.name,
-                'word_id': foil_id,
-                'target': 0,  # NEW
-                'is_old': False
-            })
+        # 1. Associative Recognition trials from Group A
+        # Split into intact and recombined
+        n_intact = len(assoc_pair_indices) // 2
+        intact_indices = assoc_pair_indices[:n_intact]
+        recombined_indices = assoc_pair_indices[n_intact:]
 
-        # 2. Associative Recognition trials (4 intact, 4 recombined)
-        pair_indices_list = list(range(len(studied_pairs)))
-        random.shuffle(pair_indices_list)
-        intact_pair_indices = pair_indices_list[:4]
-
-        for idx in intact_pair_indices:
+        # Add intact pairs
+        for idx in intact_indices:
             pair = studied_pairs[idx]
             test_trials.append({
                 'type': 'assoc',
@@ -400,13 +391,11 @@ def main():
                 'pair_num': pair['pair_num']
             })
 
-        # Create 4 recombined pairs
-        remaining_pairs = [studied_pairs[i] for i in range(len(studied_pairs))
-                          if i not in intact_pair_indices]
-
-        for i in range(4):
-            pair1 = remaining_pairs[i]
-            pair2 = remaining_pairs[(i + 1) % len(remaining_pairs)]
+        # Create recombined pairs from remaining assoc pairs
+        recombined_pairs = [studied_pairs[i] for i in recombined_indices]
+        for i in range(len(recombined_pairs)):
+            pair1 = recombined_pairs[i]
+            pair2 = recombined_pairs[(i + 1) % len(recombined_pairs)]
             test_trials.append({
                 'type': 'assoc',
                 'word1': pair1['word1'],
@@ -419,8 +408,47 @@ def main():
                 'pair_num2': pair2['pair_num']
             })
 
+        # 2. Item Recognition trials from Group B
+        # Collect all words from item pairs
+        item_words = []
+        for idx in item_pair_indices:
+            pair = studied_pairs[idx]
+            item_words.append({'word': pair['word1'], 'word_id': pair['word1_id']})
+            item_words.append({'word': pair['word2'], 'word_id': pair['word2_id']})
+
+        # Use half as OLD items, get equal number of NEW foils
+        random.shuffle(item_words)
+        n_old = len(item_words) // 2
+        old_words = item_words[:n_old]
+
+        # Add OLD item trials
+        for word_info in old_words:
+            test_trials.append({
+                'type': 'item',
+                'word': word_info['word'],
+                'word_id': word_info['word_id'],
+                'target': 1,  # OLD
+                'is_old': True
+            })
+
+        # Add NEW foil trials (equal to number of old)
+        for i in range(n_old):
+            foil_word = probe_disp_pool.pop(0)
+            foil_id = probe_disp_pool_id.isInPool(name=foil_word.name) + 1
+            test_trials.append({
+                'type': 'item',
+                'word': foil_word.name,
+                'word_id': foil_id,
+                'target': 0,  # NEW
+                'is_old': False
+            })
+
         # Shuffle all test trials
         random.shuffle(test_trials)
+
+        n_assoc = len([t for t in test_trials if t['type'] == 'assoc'])
+        n_item = len([t for t in test_trials if t['type'] == 'item'])
+        print(f"Test trials: {n_assoc} associative, {n_item} item recognition")
 
         # Clear events before test phase
         pygame.event.clear()

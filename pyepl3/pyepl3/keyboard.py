@@ -180,6 +180,9 @@ class ButtonChooser:
         """
         Wait for a button press and return with timestamp.
 
+        Ultra-conservative implementation to avoid pygame event system bugs.
+        Uses simple pygame.event.get() without event type filtering.
+
         Args:
             clk: Presentation clock
             timeout: Timeout in milliseconds (None = no timeout)
@@ -187,18 +190,18 @@ class ButtonChooser:
         Returns:
             Tuple of (button pressed, timestamp) or (None, timestamp) if timeout
         """
-        # Record start time
         start_time = clk.get() if clk else now()
 
-        # Clear any stale MOUSEMOTION and KEYUP events before starting
-        for event in pygame.event.get([pygame.MOUSEMOTION, pygame.KEYUP]):
-            pass  # Just drain these events
-
-        # Main wait loop
         while True:
-            # Check for relevant events only (QUIT, KEYDOWN, MOUSEBUTTONDOWN)
-            # This prevents MOUSEMOTION from clogging the queue
-            for event in pygame.event.get([pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN]):
+            # Get ALL events at once (most reliable pygame API - no filtering)
+            all_events = pygame.event.get()
+
+            # Process each event
+            for event in all_events:
+                # Immediately discard MOUSEMOTION and KEYUP to prevent queue buildup
+                if event.type == pygame.MOUSEMOTION or event.type == pygame.KEYUP:
+                    continue
+
                 if event.type == pygame.QUIT:
                     raise KeyboardInterrupt("Window closed")
 
@@ -233,10 +236,10 @@ class ButtonChooser:
                 if elapsed >= timeout:
                     return (None, current_time)
 
-            # Wait 10ms before checking again (reduces CPU usage and iterations)
-            # For a 5000ms timeout, this means ~500 checks instead of 5000
+            # Wait 10ms between checks (reduces CPU usage and iterations)
+            # For a 5000ms timeout: 500 checks instead of 5000
             pygame.time.wait(10)
 
-            # If using a clock, advance it by the wait time
+            # Advance clock if provided
             if clk:
                 clk._virtual_time += 10

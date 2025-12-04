@@ -157,8 +157,8 @@ class PresentationClock:
         elif wait_time < -100:
             # We're more than 100ms behind real time
             if self._error_correction:
-                # Reset to catch up
-                self._real_base = time.perf_counter()
+                # Sync real_base so elapsed_real equals virtual_time
+                self._real_base = time.perf_counter() - (self._virtual_time / 1000.0)
                 self._accumulated_error = 0.0
 
     def getAccumulatedError(self) -> float:

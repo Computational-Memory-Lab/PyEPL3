@@ -2,18 +2,20 @@
 
 ## Overview
 
-`PairAssoDevon_pyepl3.py` is the PyEPL3 adaptation of your paired associate recognition experiment. It includes:
+`PairAssoDevon_3_math.py` (and `PairAssoDevon_3_arrows.py`) are PyEPL3 adaptations of your paired associate recognition experiment. They include:
 
 - **Sequential word presentation** (W1, then W2)
 - **Item recognition test** (old vs. new words)
 - **Associative recognition test** (intact vs. recombined pairs)
-- **Math distraction task**
+- **Distraction task** (math or arrow response variants)
 - **EEG event logging**
+- **Fixation cross** during inter-pair intervals
 
 ## Files Created
 
 ### Main Experiment
-- `PairAssoDevon_pyepl3.py` - Main experiment script (PyEPL3 version)
+- `PairAssoDevon_3_math.py` - Main experiment script with math distractor
+- `PairAssoDevon_3_arrows.py` - Alternative version with arrow response distractor
 - `config_pairassoc.py` - Configuration file
 - `pyepl3_helpers.py` - Helper functions (TextPool2, instruct, mathDistract2)
 
@@ -37,7 +39,7 @@ For testing without subject argument:
 
 ```bash
 cd /Users/devon7y/VS\ Code/pyepl_testing
-python3 PairAssoDevon_pyepl3.py
+python3 PairAssoDevon_3_math.py
 ```
 
 This will run with default subject ID = 1.
@@ -45,13 +47,19 @@ This will run with default subject ID = 1.
 ### Full Experiment Run (With Subject)
 
 ```bash
-cd /Users/devon7y/VS\ Code/pyepl_testing
-python3 PairAssoDevon_pyepl3.py <subject_id>
+cd /Users/devon7y/VS\ Code/PyEPL3
+python3 PairAssoDevon_3_math.py <subject_id>
+```
+
+Or use the `-s` flag (compatible with original PyEPL):
+```bash
+python3 PairAssoDevon_3_math.py -s <subject_id>
 ```
 
 Example:
 ```bash
-python3 PairAssoDevon_pyepl3.py 101
+python3 PairAssoDevon_3_math.py 101
+python3 PairAssoDevon_3_math.py -s 101
 ```
 
 The subject ID determines key counterbalancing (subject_id % 4).
@@ -67,13 +75,21 @@ For each of 16 pairs:
 - Show word 1 for 2000ms
 - Clear screen (0ms gap)
 - Show word 2 for 2000ms
-- Clear screen
-- Jittered inter-pair interval (800-1200ms)
+- Fixation cross (+) during jittered inter-pair interval (800-1200ms)
 
 ### 3. **Distractor Task**
-- Math problems (if NDIST > 0 in config)
+Two variants available:
+
+**Math Distractor** (`PairAssoDevon_3_math.py`):
 - Addition problems with 3 numbers
+- Type answer using number keys, press ENTER to submit
 - 5 second response time per problem
+
+**Arrow Distractor** (`PairAssoDevon_3_arrows.py`):
+- Shows < or > arrow on screen
+- Respond with `,` for left or `.` for right
+- Response arrow shown below prompt
+- Fixed response time per trial (D_RESP_TIME)
 
 ### 4. **Test Phase**
 16 trials total (randomized order):
@@ -86,6 +102,8 @@ For each of 16 pairs:
   - 4 intact pairs (same as study)
   - 4 recombined pairs (words rearranged)
   - Response: Z = INTACT, / = RECOMBINED
+
+**Note:** Words used in item recognition trials are never reused in associative recognition trials (and vice versa). Study pairs are split into two groups to ensure no overlap.
 
 ### 5. **Repeat**
 - Repeat for NLISTS rounds (default = 3)
@@ -161,7 +179,7 @@ list_num  trial_num  type  [word_ids]  target  response  accuracy  RT
 
 ### Experimenter Controls
 - **SPACE** = Continue from instructions
-- **LEFT SHIFT + RIGHT SHIFT + \\** = Skip current trial (hidden)
+- **LEFT SHIFT + RIGHT SHIFT** = Skip current study trial (hidden)
 - **ESC + F1** = Emergency exit
 
 ## Differences from Original PyEPL Version
@@ -187,6 +205,19 @@ list_num  trial_num  type  [word_ids]  target  response  accuracy  RT
 - ✅ `instruct()` - Shows instructions, waits for SPACE
 - ✅ `mathDistract2()` - Math distraction task
 - ✅ `Font()` - Font path helper
+
+## Recent Changes
+
+### Bug Fixes
+- **Math distractor input**: Fixed to properly accept digit keys (0-9) and show user input on screen
+- **Clock timing**: Fixed timing bugs that caused freezes when virtual time drifted from real time
+- **Subject ID argument**: `-s` flag now works for subject ID (compatible with original PyEPL)
+
+### New Features
+- **Arrow distractor variant**: `PairAssoDevon_3_arrows.py` - respond to arrow direction instead of math
+- **Fixation cross**: Shows "+" during inter-pair intervals instead of blank screen
+- **Skip trials**: Press LEFT SHIFT + RIGHT SHIFT to skip study phase trials (for testing)
+- **No word overlap**: Words in item recognition trials are never reused in associative trials
 
 ## Troubleshooting
 

@@ -164,12 +164,14 @@ class Experiment:
         """Parse command-line arguments."""
         parser = argparse.ArgumentParser(description=f"{self.name} experiment")
         parser.add_argument('subject', nargs='?', help='Subject ID')
-        parser.add_argument('-s', '--session', help='Session name')
+        parser.add_argument('-s', '--subject-alt', dest='subject_alt', help='Subject ID (alternative to positional)')
+        parser.add_argument('--session', help='Session name')
         parser.add_argument('-c', '--config', help='Config file path')
 
         args = parser.parse_args()
 
-        self.subject = args.subject
+        # Support both positional and -s flag for subject (like original PyEPL)
+        self.subject = args.subject or args.subject_alt
         self.session = args.session or "session_0"
 
         # Load config file if specified

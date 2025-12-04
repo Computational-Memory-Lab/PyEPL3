@@ -6,9 +6,9 @@ PyEPL3 is a modern Python 3 port of the original PyEPL (Python Experiment Progra
 
 ## About PyEPL
 
-This library is based on the original PyEPL developed by Sederberg et al. (2010):
+This library is based on the original PyEPL developed by Geller et al. (2007):
 
-> Sederberg, P. B., Getz, L., Kahana, M. J., & Watrous, A. J. (2010). *PyEPL: A cross-platform experiment-programming library*. Behavior Research Methods, 42(3), 769-776. [https://doi.org/10.3758/BRM.42.3.769](https://pmc.ncbi.nlm.nih.gov/articles/PMC2839413/)
+> Geller, A. S., Schleifer, I. K., Sederberg, P. B., Jacobs, J., & Kahana, M. J. (2007). *PyEPL: A cross-platform experiment-programming library*. Behavior Research Methods, 39(4), 950-958. [https://doi.org/10.3758/BF03192990](https://link.springer.com/article/10.3758/BF03192990)
 
 PyEPL3 modernizes the original framework for Python 3, while maintaining compatibility with the core experimental design patterns.
 
@@ -82,13 +82,14 @@ video.close()
 ## Example Experiments
 
 ### Paired Associate Recognition Task
-A complete example experiment is included:
-- **PairAssoDevon_pyepl3.py** - Full paired associate recognition experiment
-- **PairAssoDevon_3.py** - Converted version from original PyEPL
+Complete example experiments are included:
+- **PairAssoDevon_3_math.py** - Paired associate recognition with math distractor
+- **PairAssoDevon_3_arrows.py** - Paired associate recognition with arrow response distractor
 
 Run the experiment:
 ```bash
-python PairAssoDevon_pyepl3.py -s 1001
+python PairAssoDevon_3_math.py -s 1001
+python PairAssoDevon_3_arrows.py -s 1001
 ```
 
 ## API Overview
@@ -145,17 +146,18 @@ resolution = (1024, 768)
 
 ```
 PyEPL3/
-├── pyepl3/              # Main PyEPL3 library
+├── pyepl3/                    # Main PyEPL3 library
 │   └── pyepl3/
 │       ├── __init__.py
 │       ├── experiment.py
 │       ├── display.py
 │       ├── keyboard.py
 │       ├── pool.py
-│       ├── utils.py     # mathDistract, etc.
+│       ├── utils.py           # mathDistract, etc.
 │       └── ...
-├── PairAssoDevon_pyepl3.py  # Example experiment
-├── config_pairassoc.py       # Example config
+├── PairAssoDevon_3_math.py    # Example: math distractor
+├── PairAssoDevon_3_arrows.py  # Example: arrow distractor
+├── config_pairassoc.py        # Example config
 └── README.md
 ```
 
@@ -221,12 +223,13 @@ BSD-3-Clause (same as original PyEPL)
 ## Credits
 
 ### Original PyEPL
-- **Per Sederberg** - Lead developer
-- **Liam Getz**
+- **Aaron S. Geller**
+- **Ian K. Schleifer**
+- **Per B. Sederberg**
+- **Joshua Jacobs**
 - **Michael J. Kahana**
-- **Andrew J. Watrous**
 
-Citation: Sederberg, P. B., Getz, L., Kahana, M. J., & Watrous, A. J. (2010). PyEPL: A cross-platform experiment-programming library. *Behavior Research Methods*, 42(3), 769-776.
+Citation: Geller, A. S., Schleifer, I. K., Sederberg, P. B., Jacobs, J., & Kahana, M. J. (2007). PyEPL: A cross-platform experiment-programming library. *Behavior Research Methods*, 39(4), 950-958.
 
 ### PyEPL3 Port
 - Python 3 modernization and enhanced features

@@ -50,10 +50,11 @@ button, timestamp = bc.waitWithTime(clk=clock)
 - ✅ Core experiment framework
 - ✅ Display system (images, text, positioning)
 - ✅ Audio playback
-- ✅ Keyboard/mouse input
+- ✅ Keyboard/mouse input with ButtonChooser
 - ✅ Pool management
-- ✅ Logging system
-- ✅ PresentationClock
+- ✅ Logging system with LogTrack
+- ✅ PresentationClock with error correction
+- ✅ mathDistract utility for distractor tasks
 
 ## Future Features
 
@@ -66,6 +67,16 @@ button, timestamp = bc.waitWithTime(clk=clock)
 ## Compatibility
 
 PyEPL3 aims to provide a similar API to original PyEPL where practical, allowing existing experiments to be migrated with minimal changes.
+
+### Command Line Arguments
+- Subject ID can be passed as positional argument or with `-s` flag (compatible with original PyEPL)
+- Session name can be passed with `--session` flag
+
+## Recent Bug Fixes
+
+- **PresentationClock timing**: Fixed error correction in `wait()` that could cause freezes when virtual time drifted from real time. The clock now properly synchronizes `_real_base` when correcting timing drift.
+- **mathDistract numeric input**: Fixed to properly accept digit keys (0-9), backspace, and minus sign. User input is now displayed on screen in real-time.
+- **Experiment argument parsing**: Fixed `-s` flag to work for subject ID (like original PyEPL) instead of session name.
 
 ## License
 

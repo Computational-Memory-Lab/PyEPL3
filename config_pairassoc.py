@@ -8,16 +8,16 @@ from pyepl3 import Key
 
 # Experiment structure
 NLISTS = 1  # Number of study-test lists
-RUN_PRACTICE = 0  # Whether to run practice (1) or not (0)
+RUN_PRACTICE = 1  # Whether to run practice (1) or not (0)
 NPAIRS = 16  # Number of word pairs per list
 
 # Timing parameters (in milliseconds)
 PRES_TIME = 2000  # Word presentation duration
-IPI_lower = 800   # Inter-pair interval lower bound
-IPI_upper = 1200  # Inter-pair interval upper bound
+IPI_lower = 500   # Inter-pair interval lower bound
+IPI_upper = 800  # Inter-pair interval upper bound
 
 # Distractor parameters
-NDIST = 20  # Number of distractor problems (0 = no distractor)
+NDIST = 5  # Number of distractor problems (0 = no distractor)
 D_RESP_TIME = 5000  # Response time for each distractor problem
 D_BLANK_TIME = 100  # Blank time between distractor problems
 DIST_MIN = 1  # Minimum number in math problems

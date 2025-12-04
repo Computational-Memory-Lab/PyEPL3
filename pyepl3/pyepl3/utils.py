@@ -112,6 +112,7 @@ def mathDistract(clk: Optional[PresentationClock] = None,
 
     # Run problems
     prob_count = 0
+    print(f"\n=== STARTING DISTRACTOR: {maxProbs} problems ===")
     while (stop_time is None or now() < stop_time) and prob_count < len(problems):
         nums, ops, correct_answer = problems[prob_count]
 
@@ -133,7 +134,7 @@ def mathDistract(clk: Optional[PresentationClock] = None,
             problem_str += f" = {displayed_answer}"
             is_correct = (modifier == 0)
         else:
-            problem_str += " = ?"
+            problem_str += " = "
 
         # Show problem
         video.clear(BLACK)
@@ -147,25 +148,94 @@ def mathDistract(clk: Optional[PresentationClock] = None,
         # Wait for response
         if tf_problems:
             bc = ButtonChooser(Key(tfKeys[0]), Key(tfKeys[1]), track=keyboard)
-        else:
-            # For numeric, just wait for keypress (simplified)
-            bc = ButtonChooser(Key("RETURN"), track=keyboard)
+            if problemTimeLimit:
+                button, timestamp = bc.waitWithTime(clk, timeout=problemTimeLimit)
+            else:
+                button, timestamp = bc.waitWithTime(clk)
 
-        if problemTimeLimit:
-            button, timestamp = bc.waitWithTime(clk, timeout=problemTimeLimit)
+            # Log T/F response
+            if button:
+                response = button.key_name
+                user_says_true = (response == tfKeys[0])
+                response_correct = (user_says_true == is_correct)
+                mathlog.logMessage(f"PROBLEM\t{problem_str}\t{response}\t{response_correct}")
+            else:
+                mathlog.logMessage(f"PROBLEM\t{problem_str}\tTIMEOUT")
         else:
-            button, timestamp = bc.waitWithTime(clk)
+            # Numeric mode: time-locked input with visual feedback
+            rstr = ""  # User's typed answer
+            has_minus = False
 
-        # Log response
-        if button and tf_problems:
-            response = button.key_name
-            user_says_true = (response == tfKeys[0])
-            response_correct = (user_says_true == is_correct)
-            mathlog.logMessage(f"PROBLEM\t{problem_str}\t{response}\t{response_correct}")
-        elif button:
-            mathlog.logMessage(f"PROBLEM\t{problem_str}\t{button.key_name}")
-        else:
-            mathlog.logMessage(f"PROBLEM\t{problem_str}\tTIMEOUT")
+            # Create ButtonChooser for all numeric input keys
+            numeric_keys = [Key(str(d)) for d in range(10)]  # 0-9
+            numeric_keys.append(Key("-"))  # minus key
+            numeric_keys.append(Key("BACKSPACE"))
+            bc = ButtonChooser(*numeric_keys, track=keyboard)
+
+            # Calculate end time for this problem
+            if problemTimeLimit:
+                prob_end = pres_time + problemTimeLimit
+            else:
+                prob_end = None  # No timeout
+
+            # Time-locked input loop
+            while True:
+                # Calculate remaining time
+                current_time = clk.get() if clk else now()
+                if prob_end is not None:
+                    remaining = prob_end - current_time
+                    if remaining <= 0:
+                        break  # Timeout reached
+                else:
+                    remaining = None
+
+                # Wait for keypress
+                button, timestamp = bc.waitWithTime(clk, timeout=remaining)
+
+                if button is None:
+                    # Timeout
+                    break
+
+                # Process the keypress
+                key_name = button.key_name
+
+                if key_name == "BACKSPACE":
+                    if len(rstr) > 0:
+                        rstr = rstr[:-1]
+                        if len(rstr) == 0:
+                            has_minus = False
+                elif key_name == "MINUS" or key_name == "-":
+                    if len(rstr) == 0 and plusAndMinus:
+                        rstr = "-"
+                        has_minus = True
+                elif key_name.isdigit():
+                    # Don't allow leading zero
+                    if len(rstr) == 0 and key_name == "0":
+                        pass  # Can't start with 0
+                    elif has_minus and len(rstr) == 1 and key_name == "0":
+                        pass  # Can't have -0
+                    else:
+                        rstr = rstr + key_name
+
+                # Update display with current answer
+                video.clear(BLACK)
+                display_str = problem_str + rstr
+                display_text = Text(display_str, size=textSize or 36, color=WHITE)
+                video.showCentered(display_text, clk)
+                video.updateScreen(clk)
+
+            # Score the answer
+            try:
+                user_answer = int(rstr) if rstr and rstr != "-" else None
+                response_correct = 1 if user_answer == correct_answer else 0
+            except ValueError:
+                user_answer = None
+                response_correct = 0
+
+            # Log numeric response
+            mathlog.logMessage(f"PROBLEM\t{problem_str}{rstr}\t{rstr}\t{response_correct}")
+            correct_str = "correct" if response_correct else "incorrect"
+            print(f"[DIST] Problem {prob_count + 1}/{maxProbs}: {problem_str}{correct_answer} | Answer: {rstr or 'none'} | {correct_str}")
 
         # Blank screen between problems
         video.clear(BLACK)
@@ -177,6 +247,8 @@ def mathDistract(clk: Optional[PresentationClock] = None,
         pygame.event.clear()
 
         prob_count += 1
+
+    print(f"=== DISTRACTOR COMPLETE: {prob_count} problems ===\n")
 
     # Log end
     mathlog.logMessage("END")
