@@ -23,8 +23,11 @@
 - `instruct/instruct0.txt` - Practice instructions
 - `instruct/instruct1.txt` - First round instructions
 - `instruct/instructN.txt` - Subsequent round instructions
-- `instruct/distractor.txt` - Distractor task instructions
-- `instruct/recognition_noorder.txt` - Recognition test instructions
+- `instruct/instruct1_arrow.txt` - First round instructions modified for arrow distractors
+- `instruct/instructN_arrow.txt` - Subsequent round instructions modified for arrow distractors
+- `instruct/distractor.txt` - Math distractor task instructions (arrow instructions included in script)
+- `instruct/recognition_noorder_assoc.txt` - Associative recognition test instructions
+- `instruct/recognition_noorder_item.txt` - Item recognition test instructions
 - `raw_pools/nouns.txt` - Word stimulus pool
 
 ## Installation
@@ -33,41 +36,20 @@ PyEPL3 is already installed. No additional setup needed!
 
 ## Running the Experiment
 
-### Basic Test Run (No Subject ID)
-
-For testing without subject argument:
+### Basic Test Run
 
 ```bash
 cd /Users/devon7y/VS\ Code/pyepl_testing
 python3 PairAssoDevon_3_math.py
 ```
-
-This will run with default subject ID = 1.
-
-### Full Experiment Run (With Subject)
-
-```bash
-cd /Users/devon7y/VS\ Code/PyEPL3
-python3 PairAssoDevon_3_math.py <subject_id>
-```
-
-Or use the `-s` flag (compatible with original PyEPL):
-```bash
-python3 PairAssoDevon_3_math.py -s <subject_id>
-```
-
-Example:
-```bash
-python3 PairAssoDevon_3_math.py 101
-python3 PairAssoDevon_3_math.py -s 101
-```
+You will then be prompted with "Enter subject ID: " and you can enter the subject ID on that line.
 
 The subject ID determines key counterbalancing (subject_id % 4).
 
 ## Experiment Flow
 
 ### 1. **Instructions**
-- Practice round instructions (if RUN_PRACTICE = 1)
+- Practice round instructions (if RUN_PRACTICE = 2)
 - Subsequent round instructions
 
 ### 2. **Study Phase**
@@ -82,7 +64,7 @@ Two variants available:
 
 **Math Distractor** (`PairAssoDevon_3_math.py`):
 - Addition problems with 3 numbers
-- Type answer using number keys, press ENTER to submit
+- Type answer using number keys, optionally, you can press ENTER to submit 
 - 5 second response time per problem
 
 **Arrow Distractor** (`PairAssoDevon_3_arrows.py`):
@@ -92,10 +74,10 @@ Two variants available:
 - Fixed response time per trial (D_RESP_TIME)
 
 ### 4. **Test Phase**
-16 trials total (randomized order):
+Two associative test phases for every one item test phase (randomized order *PENDING*):
 - **8 Item Recognition trials:**
-  - 4 old words (from study)
-  - 4 new words (foils)
+  - 16 old words (from study)
+  - 16 new words (foils)
   - Response: Z = OLD, / = NEW
 
 - **8 Associative Recognition trials:**
@@ -106,16 +88,16 @@ Two variants available:
 **Note:** Words used in item recognition trials are never reused in associative recognition trials (and vice versa). Study pairs are split into two groups to ensure no overlap.
 
 ### 5. **Repeat**
-- Repeat for NLISTS rounds (default = 3)
+- Repeat for NLISTS rounds (default = 14)
 
 ## Configuration Parameters
 
 Edit `config_pairassoc.py` to adjust:
 
 ```python
-NLISTS = 3          # Number of study-test rounds
-RUN_PRACTICE = 1    # Include practice round (1) or not (0)
-NPAIRS = 16         # Word pairs per list
+NLISTS = 14          # Number of study-test rounds
+RUN_PRACTICE = 2    # Include practice round of an associative and an item list (2) or not (0)
+NPAIRS = 8         # Word pairs per list
 
 PRES_TIME = 2000    # Word display duration (ms)
 IPI_lower = 800     # Inter-pair interval min (ms)
@@ -136,12 +118,13 @@ resolution = (1024, 768)
 Data is saved to:
 ```
 data/<subject_id>/session_<name>/
-├── video.vidlog      # Display events
-├── key.keylog        # Keyboard responses
-├── eeg.eeglog        # EEG sync events
-├── session.log       # Detailed trial data
-├── stimlog.log       # Stimulus IDs (for scoring)
-└── recoglog.log      # Recognition responses
+├── video.vidlog                                # Display events
+├── key.keylog                                  # Keyboard responses
+├── eeg.eeglog                                  # EEG sync events
+├── session.log                                 # Detailed trial data
+├── stimlog.log                                 # Stimulus IDs (for scoring)
+├── math_distract.log OR arrow_distract.log     # Distractor responses
+└── recoglog.log                                # Recognition responses
 ```
 
 ### Log File Formats
