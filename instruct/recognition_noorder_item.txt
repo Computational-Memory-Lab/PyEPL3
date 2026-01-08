@@ -1,0 +1,28 @@
+Alternatively, you may see individual words that may be from the pairs you just learned. 
+If the test word was from the word-pair list (OLD), press corresponding key to OLD. 
+If the word was not on the list (NEW), press corresponding key to NEW.
+
+
+For example, if you studied pairs:
+
+ APE  DOT and then, CAT  SKY
+
+and if you see:
+
+ APE
+
+this would be OLD.
+
+If you see:
+
+ NEON
+
+this would be NEW.
+
+Press "z" for left and "/" for right.
+
+
+Answer as quickly as possible without sacrificing accuracy.
+
+
+<< press enter to continue >>
