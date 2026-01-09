@@ -23,6 +23,99 @@ from pyepl3.pyepl3 import (
     TextPool
 )
 
+#########################################
+# Instruction Text
+#########################################
+
+INSTRUCT_PRACTICE = """
+You will see a list of words, grouped in pairs.
+
+Study the pairs of words and try to remember them. Later you will be asked about the pairs.
+
+THIS IS PRACTICE.
+
+<< press enter to continue >>"""
+
+INSTRUCT_ROUND1_ARROW = """Now you will study new pairs of words.
+The same as the practice, you will do arrow direction problems, then answer questions about the pairs.
+
+THIS IS NO LONGER PRACTICE.
+
+
+<< press enter to continue >>"""
+
+INSTRUCT_ROUNDN_ARROW = """Now you will study new pairs of words.
+Then you will do arrow direction problems, and then answer questions about the pairs.
+
+<< press enter to continue >>"""
+
+INSTRUCT_ARROW_TASK = """Arrow Task
+
+You will see arrows pointing left (<) or right (>).
+
+Press the , key when you see <
+Press the . key when you see >
+
+Respond as quickly as you can, your response will be shown below the presented arrow.
+
+Press SPACE or RETURN to continue."""
+
+INSTRUCT_RECOGNITION_ASSOC = """Now you will see pairs of words based on pairs you just learned. If the test pair is the same as you learned (INTACT), press corresponding key to INTACT. If each word in the pair comes from different pairs (RECOMBINED), press corresponding key to RECOMBINED.
+
+
+For example, if you studied pairs:
+
+ APE  DOT and then, CAT  SKY
+
+and if you see:
+
+ APE DOT
+
+this would be INTACT.
+
+If you see:
+
+ APE SKY
+
+this would be RECOMBINED.
+
+Press "z" for left and "/" for right.
+
+
+Answer as quickly as possible without sacrificing accuracy.
+
+
+<< press enter to continue >>"""
+
+INSTRUCT_RECOGNITION_ITEM = """Alternatively, you may see individual words that may be from the pairs you just learned.
+If the test word was from the word-pair list (OLD), press corresponding key to OLD.
+If the word was not on the list (NEW), press corresponding key to NEW.
+
+
+For example, if you studied pairs:
+
+ APE  DOT and then, CAT  SKY
+
+and if you see:
+
+ APE
+
+this would be OLD.
+
+If you see:
+
+ NEON
+
+this would be NEW.
+
+Press "z" for left and "/" for right.
+
+
+Answer as quickly as possible without sacrificing accuracy.
+
+
+<< press enter to continue >>"""
+
 
 def show_proportional(video, showable, x_prop, y_prop, clk=None):
     """
@@ -196,18 +289,15 @@ def main():
         # Show instructions based on list number
         if list_count <= config.RUN_PRACTICE:
             log.logMessage(f'LIST\tP{list_count}')
-            with open("instruct/instruct0.txt") as f:
-                instructions = f.read()
+            instructions = INSTRUCT_PRACTICE
             title = "Get ready for the Practice Round!"
         elif list_count == (1 + config.RUN_PRACTICE):
             log.logMessage(f'LIST\t{list_count-config.RUN_PRACTICE}')
-            with open("instruct/instruct1_arrow.txt") as f:
-                instructions = f.read()
+            instructions = INSTRUCT_ROUND1_ARROW
             title = f"Get ready for Round 1 of {config.NLISTS}!"
         else:
             log.logMessage(f'LIST\t{list_count-config.RUN_PRACTICE}')
-            with open("instruct/instructN_arrow.txt") as f:
-                instructions = f.read()
+            instructions = INSTRUCT_ROUNDN_ARROW
             title = f"Get ready for Round {list_count - config.RUN_PRACTICE} of {config.NLISTS}!"
 
         # Show instructions
@@ -339,18 +429,7 @@ def main():
 
         if config.NDIST > 0:
             if list_count == 1 and config.RUN_PRACTICE > 0:
-                # Show arrow task instructions
-                arrow_instructions = """Arrow Task
-
-You will see arrows pointing left (<) or right (>).
-
-Press the , key when you see <
-Press the . key when you see >
-
-Respond as quickly as you can, your response will be shown below the presented arrow.
-
-Press SPACE or RETURN to continue."""
-                video.showInstructions(arrow_instructions, clk=clock)
+                video.showInstructions(INSTRUCT_ARROW_TASK, clk=clock)
 
             print(f"\n=== STARTING ARROW DISTRACTOR: {config.NDIST} trials ===")
 
@@ -435,14 +514,8 @@ Press SPACE or RETURN to continue."""
         #########################################
 
         if list_count <= config.RUN_PRACTICE:
-            with open("instruct/recognition_noorder_assoc.txt") as f:
-                instructions = f.read()
-            video.showInstructions(instructions, clk=clock)
-            start = clock.get()
-            with open("instruct/recognition_noorder_item.txt") as f:
-                instructions = f.read()
-            video.showInstructions(instructions, clk=clock)
-            start = clock.get()
+            video.showInstructions(INSTRUCT_RECOGNITION_ASSOC, clk=clock)
+            video.showInstructions(INSTRUCT_RECOGNITION_ITEM, clk=clock)
         elif list_count > config.RUN_PRACTICE:
             title = "Get ready for recognition"
             video.clear(BLACK)
