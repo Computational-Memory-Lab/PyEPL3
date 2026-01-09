@@ -7,6 +7,7 @@ Common experimental tasks like math distractor.
 import random
 import numpy as np
 import pygame
+from pathlib import Path
 from typing import Optional, List, Tuple
 
 from .base import LogTrack, Registry
@@ -15,7 +16,8 @@ from .keyboard import KeyTrack, Key, ButtonChooser
 from .timing import PresentationClock, now
 
 
-def mathDistract(clk: Optional[PresentationClock] = None,
+def mathDistract(archive_dir: Path,
+                clk: Optional[PresentationClock] = None,
                 mathlog: Optional[LogTrack] = None,
                 problemTimeLimit: Optional[int] = None,
                 numVars: int = 2,
@@ -24,7 +26,7 @@ def mathDistract(clk: Optional[PresentationClock] = None,
                 maxProbs: int = 50,
                 plusAndMinus: bool = False,
                 minDuration: Optional[int] = 20000,
-                blanktime: int = 100,
+                blanktime: int = 250,
                 textSize: Optional[int] = None,
                 tfKeys: Optional[Tuple[str, str]] = None,
                 ansMod: List[int] = [0, 1, -1, 10, -10],
@@ -71,7 +73,7 @@ def mathDistract(clk: Optional[PresentationClock] = None,
 
     # Create math log if needed
     if mathlog is None:
-        mathlog = LogTrack("math_distract")
+        mathlog = LogTrack("math_distract", archive_dir=archive_dir)
         mathlog.startLogging()
 
     # Log start

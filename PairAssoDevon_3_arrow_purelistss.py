@@ -15,7 +15,7 @@ from pathlib import Path
 import pygame
 
 # Import PyEPL3
-from pyepl3 import (
+from pyepl3.pyepl3 import (
     Experiment, VideoTrack, KeyTrack, LogTrack, EEGTrack,
     PresentationClock, Text, Key, ButtonChooser,
     WHITE, BLACK, RED, GREEN, BLUE, Color,
@@ -112,7 +112,10 @@ def main():
     config = exp.getConfig()
 
     # Create tracks
-    archive_dir = exp.getArchive()
+    archive_dir = Path("archive_logs/arrow_distractor")
+    subject_id = input("Enter subject ID: ")
+    archive_dir = "".join([str(archive_dir), "/subject_", str(subject_id)])
+
     video = VideoTrack("video", archive_dir=archive_dir,
                       resolution=config.resolution,
                       fullscreen=config.fullscreen)
@@ -121,7 +124,8 @@ def main():
     stimlog = LogTrack("stimlog", archive_dir=archive_dir)
     recoglog = LogTrack("recoglog", archive_dir=archive_dir)
     log = LogTrack("session", archive_dir=archive_dir)
-
+    arrow_distract = LogTrack("arrow_distract", archive_dir=archive_dir)
+    
     # Start logging
     video.startLogging()
     keyboard.startLogging()
@@ -129,6 +133,8 @@ def main():
     stimlog.startLogging()
     recoglog.startLogging()
     log.startLogging()
+    arrow_distract.startLogging()
+
 
     # Create clock
     clock = PresentationClock()
@@ -142,10 +148,8 @@ def main():
     #########################################
 
     # Get subject ID from command line
-    if exp.subject:
-        subject_id = int(exp.subject)
-    else:
-        subject_id = 1  # Default for testing
+    subject_id = int(subject_id)
+    
 
     keychoice = subject_id % 4
     if keychoice == 0:
@@ -177,19 +181,21 @@ def main():
     list_count = 1
 
     while list_count <= (config.NLISTS + config.RUN_PRACTICE):
-        log.logMessage(f'LIST\t{list_count}')
 
         # Show instructions based on list number
-        if list_count == config.RUN_PRACTICE:
+        if list_count <= config.RUN_PRACTICE:
+            log.logMessage(f'LIST\tP{list_count}')
             with open("instruct/instruct0.txt") as f:
                 instructions = f.read()
             title = "Get ready for the Practice Round!"
         elif list_count == (1 + config.RUN_PRACTICE):
-            with open("instruct/instruct1.txt") as f:
+            log.logMessage(f'LIST\t{list_count-config.RUN_PRACTICE}')
+            with open("instruct/instruct1_arrow.txt") as f:
                 instructions = f.read()
             title = f"Get ready for Round 1 of {config.NLISTS}!"
         else:
-            with open("instruct/instructN.txt") as f:
+            log.logMessage(f'LIST\t{list_count-config.RUN_PRACTICE}')
+            with open("instruct/instructN_arrow.txt") as f:
                 instructions = f.read()
             title = f"Get ready for Round {list_count - config.RUN_PRACTICE} of {config.NLISTS}!"
 
@@ -302,8 +308,12 @@ def main():
             delay_with_skip(clock, ipi)
 
             # Log this pair presentation
-            log.logMessage(f'{list_count}\t{pair_count}\t{probe1.name}\t{word1_id}\t{probe2.name}\t{word2_id}\t{ipi}')
-            stimlog.logMessage(f'{list_count}\t{pair_count}\t{word1_id}\t{word2_id}\t{ipi}')
+            if list_count <= config.RUN_PRACTICE:
+                log.logMessage(f'P{list_count}\t{pair_count}\t{probe1.name}\t{word1_id}\t{probe2.name}\t{word2_id}\t{ipi}')
+                stimlog.logMessage(f'{list_count}\t{pair_count}\t{word1_id}\t{word2_id}\t{ipi}')
+            else:
+                log.logMessage(f'{list_count-config.RUN_PRACTICE}\t{pair_count}\t{probe1.name}\t{word1_id}\t{probe2.name}\t{word2_id}\t{ipi}')
+                stimlog.logMessage(f'{list_count}\t{pair_count}\t{word1_id}\t{word2_id}\t{ipi}') 
 
             pair_count += 1
 
@@ -313,8 +323,11 @@ def main():
         # Distractor Task - Arrow Response
         #########################################
 
+        # Log start
+        arrow_distract.logMessage("START")
+
         if config.NDIST > 0:
-            if list_count == 1 and config.RUN_PRACTICE == 1:
+            if list_count == 1 and config.RUN_PRACTICE > 0:
                 # Show arrow task instructions
                 arrow_instructions = """Arrow Task
 
@@ -323,7 +336,7 @@ You will see arrows pointing left (<) or right (>).
 Press the , key when you see <
 Press the . key when you see >
 
-Respond as quickly as you can!
+Respond as quickly as you can, your response will be shown below the presented arrow.
 
 Press SPACE or RETURN to continue."""
                 video.showInstructions(arrow_instructions, clk=clock)
@@ -343,8 +356,13 @@ Press SPACE or RETURN to continue."""
                 video.clear(BLACK)
                 arrow_text = Text(arrow_char, size=120, color=WHITE)
                 show_proportional(video, arrow_text, 0.5, 0.45, clock)
+                # Labels
+                left_arrowLabel = Text("< [,]", size=28, color=Color(128, 128, 128))
+                right_arrowLabel = Text("> [.]", size=28, color=Color(128, 128, 128))
+                show_proportional(video, left_arrowLabel, 0.20, 0.90, clock)
+                show_proportional(video, right_arrowLabel, 0.80, 0.90, clock)
                 video.updateScreen(clock)
-
+                
                 # Get presentation time
                 pres_time = clock.get()
                 prob_end = pres_time + config.D_RESP_TIME
@@ -383,7 +401,7 @@ Press SPACE or RETURN to continue."""
                 print(f"[ARROW] Trial {arrow_trial + 1}/{config.NDIST}: {arrow_char} | Response: {user_response or 'none'} | {correct_str}")
 
                 # Log arrow trial
-                log.logMessage(f"ARROW\t{arrow_trial + 1}\t{arrow_char}\t{correct_key}\t{user_response or 'NONE'}\t{1 if is_correct else 0}")
+                arrow_distract.logMessage(f"ARROW\t{arrow_trial + 1}\t{arrow_char}\t{correct_key}\t{user_response or 'NONE'}\t{1 if is_correct else 0}")
 
                 # Blank screen between trials
                 video.clear(BLACK)
@@ -405,12 +423,16 @@ Press SPACE or RETURN to continue."""
         # Test Phase - Item + Associative Recognition
         #########################################
 
-        if list_count == config.RUN_PRACTICE:
-            with open("instruct/recognition_noorder.txt") as f:
+        if list_count <= config.RUN_PRACTICE:
+            with open("instruct/recognition_noorder_assoc.txt") as f:
                 instructions = f.read()
             video.showInstructions(instructions, clk=clock)
             start = clock.get()
-        elif list_count > 1:
+            with open("instruct/recognition_noorder_item.txt") as f:
+                instructions = f.read()
+            video.showInstructions(instructions, clk=clock)
+            start = clock.get()
+        elif list_count > config.RUN_PRACTICE:
             title = "Get ready for recognition"
             video.clear(BLACK)
             title_text = Text(title, size=36, color=WHITE)
@@ -432,16 +454,16 @@ Press SPACE or RETURN to continue."""
         half = len(pair_indices) // 2
 
         # Group A: pairs for associative recognition (half for intact, half for recombined)
-        assoc_pair_indices = pair_indices[:half]
+        assoc_pair_indices = pair_indices
         # Group B: pairs for item recognition (words become old items)
-        item_pair_indices = pair_indices[half:]
+        item_pair_indices = pair_indices
 
         # 1. Associative Recognition trials from Group A
         # Split into intact and recombined
         n_intact = len(assoc_pair_indices) // 2
         intact_indices = assoc_pair_indices[:n_intact]
         recombined_indices = assoc_pair_indices[n_intact:]
-
+  
         # Add intact pairs
         for idx in intact_indices:
             pair = studied_pairs[idx]
@@ -483,7 +505,7 @@ Press SPACE or RETURN to continue."""
 
         # Use half as OLD items, get equal number of NEW foils
         random.shuffle(item_words)
-        n_old = len(item_words) // 2
+        n_old = len(item_words)
         old_words = item_words[:n_old]
 
         # Add OLD item trials
@@ -524,96 +546,103 @@ Press SPACE or RETURN to continue."""
         #########################################
         # Present test trials
         #########################################
-
+        
         test_trial_count = 1
 
         for trial in test_trials:
             video.clear(BLACK)
             video.updateScreen(clock)
 
-            if trial['type'] == 'item':
-                # Item Recognition: Show single word
-                stim = Text(trial['word'], size=48, color=WHITE)
-                show_proportional(video, stim, 0.5, 0.5, clock)
+            if list_count % 3 == 2:
+                if trial['type'] == 'item':
+                    # Item Recognition: Show single word
+                    stim = Text(trial['word'], size=48, color=WHITE)
+                    show_proportional(video, stim, 0.5, 0.5, clock)
 
-                # Labels
-                left_label = Text("OLD", size=24, color=Color(128, 128, 128))
-                right_label = Text("NEW", size=24, color=Color(128, 128, 128))
-                show_proportional(video, left_label, 0.20, 0.90, clock)
-                show_proportional(video, right_label, 0.80, 0.90, clock)
+                    # Labels
+                    left_label = Text("OLD [z]", size=28, color=Color(128, 128, 128))
+                    right_label = Text("NEW [/]", size=28, color=Color(128, 128, 128))
+                    show_proportional(video, left_label, 0.20, 0.90, clock)
+                    show_proportional(video, right_label, 0.80, 0.90, clock)
 
-                video.updateScreen(clock)
+                    video.updateScreen(clock)
 
-                # Get timestamp BEFORE waiting for response
-                pres_time = clock.get()
-                print(f"[TEST] Trial {test_trial_count} ITEM: {trial['word']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
+                    # Get timestamp BEFORE waiting for response
+                    pres_time = clock.get()
+                    print(f"[TEST] Trial {test_trial_count} ITEM: {trial['word']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
 
-                # Wait for response
-                bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
-                button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
+                    # Wait for response
+                    bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
+                    button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
 
-                print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
+                    print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
 
-                # Calculate RT
-                if button:
-                    rt = button_time - pres_time
-                    if button.key_name == config.keyLeft:
-                        response = 1  # OLD
+                    # Calculate RT
+                    if button:
+                        rt = button_time - pres_time
+                        if button.key_name == config.keyLeft:
+                            response = 1  # OLD
+                        else:
+                            response = 0  # NEW
                     else:
-                        response = 0  # NEW
-                else:
-                    rt = -1
-                    response = -1
+                        rt = -1
+                        response = -1
 
-                # Score
-                recog_acc = 1 if response == trial['target'] else 0
+                    # Score
+                    recog_acc = 1 if response == trial['target'] else 0
 
-                # Log
-                log.logMessage(f"{list_count}\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                recoglog.logMessage(f"{list_count}\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-
-            else:  # Associative recognition
-                # Show two words
-                stim = Text(f"{trial['word1']}  {trial['word2']}", size=48,
-                           color=WHITE)
-                show_proportional(video, stim, 0.5, 0.5, clock)
-
-                # Labels
-                left_label = Text("INTACT", size=24, color=Color(128, 128, 128))
-                right_label = Text("RECOMBINED", size=24, color=Color(128, 128, 128))
-                show_proportional(video, left_label, 0.20, 0.90, clock)
-                show_proportional(video, right_label, 0.80, 0.90, clock)
-
-                video.updateScreen(clock)
-
-                # Get timestamp BEFORE waiting for response
-                pres_time = clock.get()
-                print(f"[TEST] Trial {test_trial_count} ASSOC: {trial['word1']} {trial['word2']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
-
-                # Wait for response
-                bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
-                button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
-
-                print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
-
-                # Calculate RT
-                if button:
-                    rt = button_time - pres_time
-                    if button.key_name == config.keyLeft:
-                        response = 1  # INTACT
+                    # Log
+                    if list_count <= config.RUN_PRACTICE:
+                        log.logMessage(f"P{list_count}\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                        recoglog.logMessage(f"P{list_count}\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
                     else:
-                        response = 0  # RECOMBINED
-                else:
-                    rt = -1
-                    response = -1
+                        log.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                        recoglog.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+            else:
+                if trial['type'] == 'assoc':  # Associative recognition
+                    # Show two words
+                    stim = Text(f"{trial['word1']}  {trial['word2']}", size=48, color=WHITE)
+                    show_proportional(video, stim, 0.5, 0.5, clock)
 
-                # Score
-                recog_acc = 1 if response == trial['target'] else 0
+                    # Labels
+                    left_label = Text("INTACT [z]", size=28, color=Color(128, 128, 128))
+                    right_label = Text("RECOMBINED [/]", size=28, color=Color(128, 128, 128))
+                    show_proportional(video, left_label, 0.20, 0.90, clock)
+                    show_proportional(video, right_label, 0.80, 0.90, clock)
 
-                # Log
-                log.logMessage(f"{list_count}\t{test_trial_count}\tASSOC\t{trial['word1']}\t{trial['word1_id']}\t{trial['word2']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                recoglog.logMessage(f"{list_count}\t{test_trial_count}\tASSOC\t{trial['word1_id']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                    video.updateScreen(clock)
 
+                    # Get timestamp BEFORE waiting for response
+                    pres_time = clock.get()
+                    print(f"[TEST] Trial {test_trial_count} ASSOC: {trial['word1']} {trial['word2']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
+
+                    # Wait for response
+                    bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
+                    button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
+
+                    print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
+                    # Calculate RT
+                    if button:
+                        rt = button_time - pres_time
+                        if button.key_name == config.keyLeft:
+                            response = 1  # INTACT
+                        else:
+                            response = 0  # RECOMBINED
+                    else:
+                        rt = -1
+                        response = -1
+
+                    # Score
+                    recog_acc = 1 if response == trial['target'] else 0
+                
+                    # Log
+                    if list_count <= config.RUN_PRACTICE:
+                        log.logMessage(f"P{list_count}\t{test_trial_count}\tASSOC\t{trial['word1']}\t{trial['word1_id']}\t{trial['word2']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                        recoglog.logMessage(f"P{list_count}\t{test_trial_count}\tASSOC\t{trial['word1_id']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                    else:
+                        log.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tASSOC\t{trial['word1']}\t{trial['word1_id']}\t{trial['word2']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                        recoglog.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tASSOC\t{trial['word1_id']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                        
             # Clear and wait
             video.clear(BLACK)
             video.updateScreen(clock)
@@ -625,6 +654,7 @@ Press SPACE or RETURN to continue."""
             test_trial_count += 1
 
         list_count += 1
+
 
     #########################################
     # End of Experiment

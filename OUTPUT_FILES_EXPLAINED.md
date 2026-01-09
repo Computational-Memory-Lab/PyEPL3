@@ -1,7 +1,7 @@
 # Experiment Output Files Explained (Subject 6969)
 
 ## Overview
-When you run `PairAssoDevon_refactored.py -s 6969`, PyEPL automatically creates a subject directory `6969/` (or `data/6969/`) with all experiment output files. Here's what each file contains and why it's important.
+When you run `PairAssoDevon_3_arrows.py` or `PairAssoDevon_3_math.py`, you will be prompted to enter a subejct number and PyEPL automatically creates a subject directory within `archive_logs/arrow_distractor` or `archive_logs/math_distractor` with all experiment output files. Here's what each file contains and why it's important.
 
 ---
 
@@ -22,6 +22,7 @@ When you run `PairAssoDevon_refactored.py -s 6969`, PyEPL automatically creates 
 ├── video.vidlog            [Video display timing]
 ├── instruct.log            [Instruction screen timing]
 ├── math_distract.log       [Math distractor responses]
+├── arrow_distract.log       [Arrow distractor responses]
 └── experiment.log          [General experiment events]
 ```
 

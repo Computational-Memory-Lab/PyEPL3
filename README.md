@@ -21,6 +21,7 @@ PyEPL3 modernizes the original framework for Python 3, while maintaining compati
 - ✅ **Stimulus pools** - Easy management of word lists, images, and sounds
 - ✅ **Logging system** - Automatic logging of all experimental events
 - ✅ **Math distractor** - Built-in math distractor task
+- ✅ **Arrow distractor** - Built-in arrow distractor task
 - ✅ **Presentation clock** - Precise timing control for experiments
 
 ## Installation
@@ -37,10 +38,11 @@ PyEPL3 modernizes the original framework for Python 3, while maintaining compati
 cd pyepl3
 pip install -e .
 ```
+** If the above doesn't work try replacing pip with pip3 or pipx **
 
 ## Quick Start
 
-```python
+```python OR python3 if there are issues
 from pyepl3 import (
     Experiment, VideoTrack, KeyTrack, PresentationClock,
     Text, WHITE, BLACK

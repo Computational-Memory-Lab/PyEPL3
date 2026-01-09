@@ -1,0 +1,1 @@
+arrow distractor log folder
