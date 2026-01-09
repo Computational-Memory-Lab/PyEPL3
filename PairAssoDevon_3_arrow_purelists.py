@@ -11,6 +11,7 @@ import sys
 import random
 import time
 import math
+import argparse
 from pathlib import Path
 import pygame
 
@@ -101,6 +102,11 @@ def main():
     # Initialization
     #########################################
 
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Paired Associate Recognition EEG Experiment")
+    parser.add_argument("-s", "--subject", type=str, help="Subject ID")
+    args = parser.parse_args()
+
     # Create experiment
     exp = Experiment(name="PairAssocRecog")
 
@@ -113,7 +119,12 @@ def main():
 
     # Create tracks
     archive_dir = Path("archive_logs/arrow_distractor")
-    subject_id = input("Enter subject ID: ")
+
+    # Get subject ID from command line or prompt
+    if args.subject:
+        subject_id = args.subject
+    else:
+        subject_id = input("Enter subject ID: ")
     archive_dir = "".join([str(archive_dir), "/subject_", str(subject_id)])
 
     video = VideoTrack("video", archive_dir=archive_dir,
