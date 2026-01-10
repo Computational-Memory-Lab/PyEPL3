@@ -268,6 +268,22 @@ def main():
 
     print(f"Key choice: {keychoice}")
 
+    # Counterbalance test type order within each group of 3 lists
+    # Each group of 3 has 2 associative and 1 item test
+    # Pattern determined by subject_id % 3
+    test_patterns = [
+        ['assoc', 'assoc', 'item'],  # Pattern 0: Item in position 3
+        ['assoc', 'item', 'assoc'],  # Pattern 1: Item in position 2
+        ['item', 'assoc', 'assoc'],  # Pattern 2: Item in position 1
+    ]
+    test_pattern = test_patterns[subject_id % 3]
+    print(f"Test pattern: {test_pattern} (subject {subject_id} % 3 = {subject_id % 3})")
+
+    def get_test_type(list_num):
+        """Get the test type for a given list number (1-indexed, excluding practice)."""
+        position_in_group = (list_num - 1) % 3
+        return test_pattern[position_in_group]
+
     #########################################
     # Build Stimulus Pools
     #########################################
@@ -509,116 +525,109 @@ def main():
             clock.delay(500)  # Brief pause after distractor
 
         #########################################
-        # Test Phase - Item + Associative Recognition
+        # Test Phase - Pure List Recognition (Assoc OR Item)
         #########################################
 
+        # Determine test type for this list
         if list_count <= config.RUN_PRACTICE:
+            # Practice uses associative test
+            current_test_type = 'assoc'
+        else:
+            current_test_type = get_test_type(list_count - config.RUN_PRACTICE)
+
+        print(f"Test type for list {list_count}: {current_test_type}")
+
+        # Show appropriate instruction
+        if current_test_type == 'assoc':
             video.showInstructions(INSTRUCT_RECOGNITION_ASSOC, clk=clock)
+        else:
             video.showInstructions(INSTRUCT_RECOGNITION_ITEM, clk=clock)
-        elif list_count > config.RUN_PRACTICE:
-            title = "Get ready for recognition"
-            video.clear(BLACK)
-            title_text = Text(title, size=36, color=WHITE)
-            video.showCentered(title_text, clock)
-            video.updateScreen(clock)
-            clock.delay(2000)
 
         #########################################
-        # Create test trials
-        # Split pairs: half for associative, half for item recognition
-        # No word overlap between trial types
+        # Create test trials - Pure Lists
+        # Only create trials for the current test type
         #########################################
 
         test_trials = []
 
-        # Shuffle and split pairs into two groups
-        pair_indices = list(range(len(studied_pairs)))
-        random.shuffle(pair_indices)
-        half = len(pair_indices) // 2
+        if current_test_type == 'assoc':
+            # Associative Recognition: half intact, half recombined
+            pair_indices = list(range(len(studied_pairs)))
+            random.shuffle(pair_indices)
 
-        # Group A: pairs for associative recognition (half for intact, half for recombined)
-        assoc_pair_indices = pair_indices
-        # Group B: pairs for item recognition (words become old items)
-        item_pair_indices = pair_indices
+            n_intact = len(pair_indices) // 2
+            intact_indices = pair_indices[:n_intact]
+            recombined_indices = pair_indices[n_intact:]
 
-        # 1. Associative Recognition trials from Group A
-        # Split into intact and recombined
-        n_intact = len(assoc_pair_indices) // 2
-        intact_indices = assoc_pair_indices[:n_intact]
-        recombined_indices = assoc_pair_indices[n_intact:]
-  
-        # Add intact pairs
-        for idx in intact_indices:
-            pair = studied_pairs[idx]
-            test_trials.append({
-                'type': 'assoc',
-                'word1': pair['word1'],
-                'word1_id': pair['word1_id'],
-                'word2': pair['word2'],
-                'word2_id': pair['word2_id'],
-                'target': 1,  # INTACT
-                'is_intact': True,
-                'pair_num': pair['pair_num']
-            })
+            # Add intact pairs
+            for idx in intact_indices:
+                pair = studied_pairs[idx]
+                test_trials.append({
+                    'type': 'assoc',
+                    'word1': pair['word1'],
+                    'word1_id': pair['word1_id'],
+                    'word2': pair['word2'],
+                    'word2_id': pair['word2_id'],
+                    'target': 1,  # INTACT
+                    'is_intact': True,
+                    'pair_num': pair['pair_num']
+                })
 
-        # Create recombined pairs from remaining assoc pairs
-        recombined_pairs = [studied_pairs[i] for i in recombined_indices]
-        for i in range(len(recombined_pairs)):
-            pair1 = recombined_pairs[i]
-            pair2 = recombined_pairs[(i + 1) % len(recombined_pairs)]
-            test_trials.append({
-                'type': 'assoc',
-                'word1': pair1['word1'],
-                'word1_id': pair1['word1_id'],
-                'word2': pair2['word2'],
-                'word2_id': pair2['word2_id'],
-                'target': 0,  # RECOMBINED
-                'is_intact': False,
-                'pair_num1': pair1['pair_num'],
-                'pair_num2': pair2['pair_num']
-            })
+            # Create recombined pairs
+            recombined_pairs = [studied_pairs[i] for i in recombined_indices]
+            for i in range(len(recombined_pairs)):
+                pair1 = recombined_pairs[i]
+                pair2 = recombined_pairs[(i + 1) % len(recombined_pairs)]
+                test_trials.append({
+                    'type': 'assoc',
+                    'word1': pair1['word1'],
+                    'word1_id': pair1['word1_id'],
+                    'word2': pair2['word2'],
+                    'word2_id': pair2['word2_id'],
+                    'target': 0,  # RECOMBINED
+                    'is_intact': False,
+                    'pair_num1': pair1['pair_num'],
+                    'pair_num2': pair2['pair_num']
+                })
 
-        # 2. Item Recognition trials from Group B
-        # Collect all words from item pairs
-        item_words = []
-        for idx in item_pair_indices:
-            pair = studied_pairs[idx]
-            item_words.append({'word': pair['word1'], 'word_id': pair['word1_id']})
-            item_words.append({'word': pair['word2'], 'word_id': pair['word2_id']})
+            print(f"Test trials: {len(test_trials)} associative")
 
-        # Use half as OLD items, get equal number of NEW foils
-        random.shuffle(item_words)
-        n_old = len(item_words)
-        old_words = item_words[:n_old]
+        else:  # item recognition
+            # Item Recognition: all studied words (OLD) + equal NEW foils
+            item_words = []
+            for pair in studied_pairs:
+                item_words.append({'word': pair['word1'], 'word_id': pair['word1_id']})
+                item_words.append({'word': pair['word2'], 'word_id': pair['word2_id']})
 
-        # Add OLD item trials
-        for word_info in old_words:
-            test_trials.append({
-                'type': 'item',
-                'word': word_info['word'],
-                'word_id': word_info['word_id'],
-                'target': 1,  # OLD
-                'is_old': True
-            })
+            random.shuffle(item_words)
+            n_old = len(item_words)
 
-        # Add NEW foil trials (equal to number of old)
-        for i in range(n_old):
-            foil_word = probe_disp_pool.pop(0)
-            foil_id = probe_disp_pool_id.isInPool(name=foil_word.name) + 1
-            test_trials.append({
-                'type': 'item',
-                'word': foil_word.name,
-                'word_id': foil_id,
-                'target': 0,  # NEW
-                'is_old': False
-            })
+            # Add OLD item trials
+            for word_info in item_words:
+                test_trials.append({
+                    'type': 'item',
+                    'word': word_info['word'],
+                    'word_id': word_info['word_id'],
+                    'target': 1,  # OLD
+                    'is_old': True
+                })
+
+            # Add NEW foil trials (equal to number of old)
+            for i in range(n_old):
+                foil_word = probe_disp_pool.pop(0)
+                foil_id = probe_disp_pool_id.isInPool(name=foil_word.name) + 1
+                test_trials.append({
+                    'type': 'item',
+                    'word': foil_word.name,
+                    'word_id': foil_id,
+                    'target': 0,  # NEW
+                    'is_old': False
+                })
+
+            print(f"Test trials: {len(test_trials)} item recognition ({n_old} old, {n_old} new)")
 
         # Shuffle all test trials
         random.shuffle(test_trials)
-
-        n_assoc = len([t for t in test_trials if t['type'] == 'assoc'])
-        n_item = len([t for t in test_trials if t['type'] == 'item'])
-        print(f"Test trials: {n_assoc} associative, {n_item} item recognition")
 
         # Clear events before test phase
         pygame.event.clear()
@@ -636,95 +645,95 @@ def main():
             video.clear(BLACK)
             video.updateScreen(clock)
 
-            if list_count % 3 == 2:
-                if trial['type'] == 'item':
-                    # Item Recognition: Show single word
-                    stim = Text(trial['word'], size=48, color=WHITE)
-                    show_proportional(video, stim, 0.5, 0.5, clock)
+            if current_test_type == 'item':
+                # Item Recognition: Show single word
+                stim = Text(trial['word'], size=48, color=WHITE)
+                show_proportional(video, stim, 0.5, 0.5, clock)
 
-                    # Labels
-                    left_label = Text("OLD [z]", size=28, color=WHITE)
-                    right_label = Text("NEW [/]", size=28, color=WHITE)
-                    show_proportional(video, left_label, 0.20, 0.90, clock)
-                    show_proportional(video, right_label, 0.80, 0.90, clock)
+                # Labels
+                left_label = Text("OLD [z]", size=28, color=WHITE)
+                right_label = Text("NEW [/]", size=28, color=WHITE)
+                show_proportional(video, left_label, 0.20, 0.90, clock)
+                show_proportional(video, right_label, 0.80, 0.90, clock)
 
-                    video.updateScreen(clock)
+                video.updateScreen(clock)
 
-                    # Get timestamp BEFORE waiting for response
-                    pres_time = clock.get()
-                    print(f"[TEST] Trial {test_trial_count} ITEM: {trial['word']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
+                # Get timestamp BEFORE waiting for response
+                pres_time = clock.get()
+                print(f"[TEST] Trial {test_trial_count} ITEM: {trial['word']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
 
-                    # Wait for response
-                    bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
-                    button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
+                # Wait for response
+                bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
+                button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
 
-                    print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
+                print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
 
-                    # Calculate RT
-                    if button:
-                        rt = button_time - pres_time
-                        if button.key_name == config.keyLeft:
-                            response = 1  # OLD
-                        else:
-                            response = 0  # NEW
+                # Calculate RT
+                if button:
+                    rt = button_time - pres_time
+                    if button.key_name == config.keyLeft:
+                        response = 1  # OLD
                     else:
-                        rt = -1
-                        response = -1
+                        response = 0  # NEW
+                else:
+                    rt = -1
+                    response = -1
 
-                    # Score
-                    recog_acc = 1 if response == trial['target'] else 0
+                # Score
+                recog_acc = 1 if response == trial['target'] else 0
 
-                    # Log
-                    if list_count <= config.RUN_PRACTICE:
-                        log.logMessage(f"P{list_count}\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                        recoglog.logMessage(f"P{list_count}\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                # Log
+                if list_count <= config.RUN_PRACTICE:
+                    log.logMessage(f"P{list_count}\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                    recoglog.logMessage(f"P{list_count}\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                else:
+                    log.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                    recoglog.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+
+            else:  # current_test_type == 'assoc'
+                # Associative Recognition: Show two words
+                stim = Text(f"{trial['word1']}  {trial['word2']}", size=48, color=WHITE)
+                show_proportional(video, stim, 0.5, 0.5, clock)
+
+                # Labels
+                left_label = Text("INTACT [z]", size=28, color=WHITE)
+                right_label = Text("RECOMBINED [/]", size=28, color=WHITE)
+                show_proportional(video, left_label, 0.20, 0.90, clock)
+                show_proportional(video, right_label, 0.80, 0.90, clock)
+
+                video.updateScreen(clock)
+
+                # Get timestamp BEFORE waiting for response
+                pres_time = clock.get()
+                print(f"[TEST] Trial {test_trial_count} ASSOC: {trial['word1']} {trial['word2']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
+
+                # Wait for response
+                bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
+                button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
+
+                print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
+
+                # Calculate RT
+                if button:
+                    rt = button_time - pres_time
+                    if button.key_name == config.keyLeft:
+                        response = 1  # INTACT
                     else:
-                        log.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                        recoglog.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-            else:
-                if trial['type'] == 'assoc':  # Associative recognition
-                    # Show two words
-                    stim = Text(f"{trial['word1']}  {trial['word2']}", size=48, color=WHITE)
-                    show_proportional(video, stim, 0.5, 0.5, clock)
+                        response = 0  # RECOMBINED
+                else:
+                    rt = -1
+                    response = -1
 
-                    # Labels
-                    left_label = Text("INTACT [z]", size=28, color=WHITE)
-                    right_label = Text("RECOMBINED [/]", size=28, color=WHITE)
-                    show_proportional(video, left_label, 0.20, 0.90, clock)
-                    show_proportional(video, right_label, 0.80, 0.90, clock)
+                # Score
+                recog_acc = 1 if response == trial['target'] else 0
 
-                    video.updateScreen(clock)
-
-                    # Get timestamp BEFORE waiting for response
-                    pres_time = clock.get()
-                    print(f"[TEST] Trial {test_trial_count} ASSOC: {trial['word1']} {trial['word2']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
-
-                    # Wait for response
-                    bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
-                    button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
-
-                    print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
-                    # Calculate RT
-                    if button:
-                        rt = button_time - pres_time
-                        if button.key_name == config.keyLeft:
-                            response = 1  # INTACT
-                        else:
-                            response = 0  # RECOMBINED
-                    else:
-                        rt = -1
-                        response = -1
-
-                    # Score
-                    recog_acc = 1 if response == trial['target'] else 0
-                
-                    # Log
-                    if list_count <= config.RUN_PRACTICE:
-                        log.logMessage(f"P{list_count}\t{test_trial_count}\tASSOC\t{trial['word1']}\t{trial['word1_id']}\t{trial['word2']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                        recoglog.logMessage(f"P{list_count}\t{test_trial_count}\tASSOC\t{trial['word1_id']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                    else:
-                        log.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tASSOC\t{trial['word1']}\t{trial['word1_id']}\t{trial['word2']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                        recoglog.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tASSOC\t{trial['word1_id']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                # Log
+                if list_count <= config.RUN_PRACTICE:
+                    log.logMessage(f"P{list_count}\t{test_trial_count}\tASSOC\t{trial['word1']}\t{trial['word1_id']}\t{trial['word2']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                    recoglog.logMessage(f"P{list_count}\t{test_trial_count}\tASSOC\t{trial['word1_id']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                else:
+                    log.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tASSOC\t{trial['word1']}\t{trial['word1_id']}\t{trial['word2']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
+                    recoglog.logMessage(f"{list_count-config.RUN_PRACTICE}\t{test_trial_count}\tASSOC\t{trial['word1_id']}\t{trial['word2_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
                         
             # Clear and wait
             video.clear(BLACK)
