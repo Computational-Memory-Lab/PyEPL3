@@ -28,44 +28,47 @@ from pyepl3.pyepl3 import (
 #########################################
 
 INSTRUCT_PRACTICE = """
-You will see a list of words, grouped in pairs.
+You will see a list of words, grouped in pairs
 
-Study the pairs of words and try to remember them. Later you will be asked about the pairs.
+Study the word pairs and try to remember them
 
-THIS IS PRACTICE.
+After, you will be tested on the words
 
-<< press enter to continue >>"""
+THIS IS PRACTICE
 
-INSTRUCT_ROUND1_ARROW = """Now you will study new pairs of words.
-The same as the practice, you will do arrow direction problems, then answer questions about the pairs.
+Press ENTER to continue"""
 
-THIS IS NO LONGER PRACTICE.
+INSTRUCT_ROUND1_ARROW = """
+You will now study a new list of words
 
+THIS IS NO LONGER PRACTICE
 
-<< press enter to continue >>"""
+Press ENTER to continue"""
 
-INSTRUCT_ROUNDN_ARROW = """Now you will study new pairs of words.
-Then you will do arrow direction problems, and then answer questions about the pairs.
+INSTRUCT_ROUNDN_ARROW = """
+You will now study a new list of words
 
-<< press enter to continue >>"""
+Press ENTER to continue"""
 
-INSTRUCT_ARROW_TASK = """Arrow Task
+INSTRUCT_ARROW_TASK = """
+You will now see arrows pointing left < or right >
 
-You will see arrows pointing left (<) or right (>).
+Press the z key when you see <
+Press the / key when you see >
 
-Press the , key when you see <
-Press the . key when you see >
+Respond as quickly as you can
 
-Respond as quickly as you can, your response will be shown below the presented arrow.
+Press ENTER to continue"""
 
-Press SPACE or RETURN to continue."""
+INSTRUCT_RECOGNITION_ASSOC = """
+Now you will see pairs of words based on pairs you just learned
 
-INSTRUCT_RECOGNITION_ASSOC = """Now you will see pairs of words based on pairs you just learned. If the test pair is the same as you learned (INTACT), press corresponding key to INTACT. If each word in the pair comes from different pairs (RECOMBINED), press corresponding key to RECOMBINED.
-
+If the test pair is the same as you learned, press corresponding key to INTACT
+If the test pair words come from different pairs, press corresponding key to RECOMBINED
 
 For example, if you studied pairs:
 
- APE  DOT and then, CAT  SKY
+ APE DOT then, CAT SKY
 
 and if you see:
 
@@ -79,22 +82,21 @@ If you see:
 
 this would be RECOMBINED.
 
-Press "z" for left and "/" for right.
+Press "z" for left and "/" for right
 
+Answer as quickly as possible without sacrificing accuracy
 
-Answer as quickly as possible without sacrificing accuracy.
+Press ENTER to continue"""
 
+INSTRUCT_RECOGNITION_ITEM = """
+Now you will see individual words from the pairs you just learned
 
-<< press enter to continue >>"""
-
-INSTRUCT_RECOGNITION_ITEM = """Alternatively, you may see individual words that may be from the pairs you just learned.
-If the test word was from the word-pair list (OLD), press corresponding key to OLD.
-If the word was not on the list (NEW), press corresponding key to NEW.
-
+If the word was in the list you just studied, press corresponding key to OLD
+If the word was NOT in the list you just studied, press corresponding key to NEW
 
 For example, if you studied pairs:
 
- APE  DOT and then, CAT  SKY
+ APE DOT then, CAT SKY
 
 and if you see:
 
@@ -108,14 +110,11 @@ If you see:
 
 this would be NEW.
 
-Press "z" for left and "/" for right.
+Press "z" for left and "/" for right
 
+Answer as quickly as possible without sacrificing accuracy
 
-Answer as quickly as possible without sacrificing accuracy.
-
-
-<< press enter to continue >>"""
-
+Press ENTER to continue"""
 
 def show_proportional(video, showable, x_prop, y_prop, clk=None):
     """
@@ -434,21 +433,21 @@ def main():
             print(f"\n=== STARTING ARROW DISTRACTOR: {config.NDIST} trials ===")
 
             # Create button chooser for arrow responses
-            arrow_bc = ButtonChooser(Key(","), Key("."), track=keyboard)
+            arrow_bc = ButtonChooser(Key("z"), Key("/"), track=keyboard)
 
             for arrow_trial in range(config.NDIST):
                 # Randomly choose left or right arrow
                 is_left = random.choice([True, False])
                 arrow_char = "<" if is_left else ">"
-                correct_key = "," if is_left else "."
+                correct_key = "z" if is_left else "/"
 
                 # Show arrow (centered, fixed position)
                 video.clear(BLACK)
                 arrow_text = Text(arrow_char, size=120, color=WHITE)
                 show_proportional(video, arrow_text, 0.5, 0.45, clock)
                 # Labels
-                left_arrowLabel = Text("< [,]", size=28, color=Color(128, 128, 128))
-                right_arrowLabel = Text("> [.]", size=28, color=Color(128, 128, 128))
+                left_arrowLabel = Text("< [z]", size=28, color=WHITE)
+                right_arrowLabel = Text("> [/]", size=28, color=WHITE)
                 show_proportional(video, left_arrowLabel, 0.20, 0.90, clock)
                 show_proportional(video, right_arrowLabel, 0.80, 0.90, clock)
                 video.updateScreen(clock)
@@ -466,7 +465,7 @@ def main():
                 if button is not None:
                     user_response = button.key_name
                     # Convert key to arrow character
-                    response_arrow = "<" if user_response == "," else ">"
+                    response_arrow = "<" if user_response == "z" else ">"
 
                     # Show response arrow below prompt (prompt stays in same position)
                     response_text = Text(response_arrow, size=120, color=WHITE)
@@ -644,8 +643,8 @@ def main():
                     show_proportional(video, stim, 0.5, 0.5, clock)
 
                     # Labels
-                    left_label = Text("OLD [z]", size=28, color=Color(128, 128, 128))
-                    right_label = Text("NEW [/]", size=28, color=Color(128, 128, 128))
+                    left_label = Text("OLD [z]", size=28, color=WHITE)
+                    right_label = Text("NEW [/]", size=28, color=WHITE)
                     show_proportional(video, left_label, 0.20, 0.90, clock)
                     show_proportional(video, right_label, 0.80, 0.90, clock)
 
@@ -689,8 +688,8 @@ def main():
                     show_proportional(video, stim, 0.5, 0.5, clock)
 
                     # Labels
-                    left_label = Text("INTACT [z]", size=28, color=Color(128, 128, 128))
-                    right_label = Text("RECOMBINED [/]", size=28, color=Color(128, 128, 128))
+                    left_label = Text("INTACT [z]", size=28, color=WHITE)
+                    right_label = Text("RECOMBINED [/]", size=28, color=WHITE)
                     show_proportional(video, left_label, 0.20, 0.90, clock)
                     show_proportional(video, right_label, 0.80, 0.90, clock)
 
