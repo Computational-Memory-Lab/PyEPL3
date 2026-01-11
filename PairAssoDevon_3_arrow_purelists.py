@@ -386,7 +386,7 @@ def main():
 
             stim1 = Text(probe1.name, size=72, color=WHITE)
             video.clear(BLACK)
-            video.showCentered(stim1, clock)
+            show_proportional(video, stim1, 0.5, 0.5, clock)
             video.updateScreen(clock)
 
             print(f"  Waiting {config.PRES_TIME}ms for word 1...")
@@ -403,7 +403,7 @@ def main():
 
             stim2 = Text(probe2.name, size=72, color=WHITE)
             video.clear(BLACK)
-            video.showCentered(stim2, clock)
+            show_proportional(video, stim2, 0.5, 0.5, clock)
             video.updateScreen(clock)
 
             print(f"  Waiting {config.PRES_TIME}ms for word 2...")
@@ -416,8 +416,8 @@ def main():
 
             # Show fixation cross during jittered IPI
             video.clear(BLACK)
-            fixation = Text("+", size=72, color=WHITE)
-            video.showCentered(fixation, clock)
+            fixation = Text("+", size=120, color=WHITE)
+            show_proportional(video, fixation, 0.5, 0.49, clock)
             video.updateScreen(clock)
 
             print(f"  Inter-pair interval: {ipi}ms")
@@ -480,8 +480,8 @@ def main():
 
                 if button is not None:
                     user_response = button.key_name
-                    # Convert key to arrow character
-                    response_arrow = "<" if user_response == "z" else ">"
+                    # Convert key to arrow character (case-insensitive comparison)
+                    response_arrow = "<" if user_response.lower() == "z" else ">"
 
                     # Show response arrow below prompt (prompt stays in same position)
                     response_text = Text(response_arrow, size=120, color=WHITE)
@@ -495,9 +495,9 @@ def main():
                     pygame.time.wait(int(remaining))
                     clock._virtual_time = prob_end  # Sync virtual clock
 
-                # Score response
+                # Score response (case-insensitive comparison)
                 if user_response is not None:
-                    is_correct = (user_response == correct_key)
+                    is_correct = (user_response.lower() == correct_key)
                     correct_str = "correct" if is_correct else "incorrect"
                 else:
                     is_correct = False
