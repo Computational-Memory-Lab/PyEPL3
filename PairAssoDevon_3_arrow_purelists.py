@@ -537,9 +537,12 @@ def main():
         #########################################
 
         # Determine test type for this list
-        if list_count <= config.RUN_PRACTICE:
-            # Practice uses associative test
+        if list_count <= config.RUN_PRACTICE-1:
+            # Practice 1 uses associative test
             current_test_type = 'assoc'
+        elif list_count <= config.RUN_PRACTICE:
+            # Practice 2 uses associative test
+            current_test_type = 'item'
         else:
             current_test_type = get_test_type(list_count - config.RUN_PRACTICE)
 
