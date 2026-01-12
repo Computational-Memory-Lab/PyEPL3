@@ -254,17 +254,25 @@ def main():
     subject_id = int(subject_id)
     
 
-    keychoice = subject_id % 4
+    keychoice = subject_id % 2
     if keychoice == 0:
         key_left = config.keyLeft
         key_right = config.keyRight
-        inst_m_left = "INTACT"
-        inst_m_right = "RECOMBINED"
+        # Associative test labels
+        inst_assoc_left = "INTACT"
+        inst_assoc_right = "RECOMBINED"
+        # Item test labels
+        inst_item_left = "OLD"
+        inst_item_right = "NEW"
     else:
         key_left = config.keyLeft
         key_right = config.keyRight
-        inst_m_left = "RECOMBINED"
-        inst_m_right = "INTACT"
+        # Associative test labels
+        inst_assoc_left = "RECOMBINED"
+        inst_assoc_right = "INTACT"
+        # Item test labels
+        inst_item_left = "NEW"
+        inst_item_right = "OLD"
 
     print(f"Key choice: {keychoice}")
 
@@ -651,8 +659,8 @@ def main():
                 show_proportional(video, stim, 0.5, 0.5, clock)
 
                 # Labels
-                left_label = Text("OLD [z]", size=28, color=WHITE)
-                right_label = Text("NEW [/]", size=28, color=WHITE)
+                left_label = Text(f"{inst_item_left} [z]", size=28, color=WHITE)
+                right_label = Text(f"{inst_item_right} [/]", size=28, color=WHITE)
                 show_proportional(video, left_label, 0.20, 0.90, clock)
                 show_proportional(video, right_label, 0.80, 0.90, clock)
 
@@ -671,10 +679,19 @@ def main():
                 # Calculate RT
                 if button:
                     rt = button_time - pres_time
-                    if button.key_name == config.keyLeft:
-                        response = 1  # OLD
+                    # Response coding based on counterbalancing
+                    if keychoice == 0:
+                        # Left=OLD(1), Right=NEW(0)
+                        if button.key_name == config.keyLeft:
+                            response = 1  # OLD
+                        else:
+                            response = 0  # NEW
                     else:
-                        response = 0  # NEW
+                        # Left=NEW(0), Right=OLD(1)
+                        if button.key_name == config.keyLeft:
+                            response = 0  # NEW
+                        else:
+                            response = 1  # OLD
                 else:
                     rt = -1
                     response = -1
@@ -696,8 +713,8 @@ def main():
                 show_proportional(video, stim, 0.5, 0.5, clock)
 
                 # Labels
-                left_label = Text("INTACT [z]", size=28, color=WHITE)
-                right_label = Text("RECOMBINED [/]", size=28, color=WHITE)
+                left_label = Text(f"{inst_assoc_left} [z]", size=28, color=WHITE)
+                right_label = Text(f"{inst_assoc_right} [/]", size=28, color=WHITE)
                 show_proportional(video, left_label, 0.20, 0.90, clock)
                 show_proportional(video, right_label, 0.80, 0.90, clock)
 
@@ -716,10 +733,19 @@ def main():
                 # Calculate RT
                 if button:
                     rt = button_time - pres_time
-                    if button.key_name == config.keyLeft:
-                        response = 1  # INTACT
+                    # Response coding based on counterbalancing
+                    if keychoice == 0:
+                        # Left=INTACT(1), Right=RECOMBINED(0)
+                        if button.key_name == config.keyLeft:
+                            response = 1  # INTACT
+                        else:
+                            response = 0  # RECOMBINED
                     else:
-                        response = 0  # RECOMBINED
+                        # Left=RECOMBINED(0), Right=INTACT(1)
+                        if button.key_name == config.keyLeft:
+                            response = 0  # RECOMBINED
+                        else:
+                            response = 1  # INTACT
                 else:
                     rt = -1
                     response = -1
