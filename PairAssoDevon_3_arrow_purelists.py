@@ -541,7 +541,7 @@ def main():
             # Practice 1 uses associative test
             current_test_type = 'assoc'
         elif list_count <= config.RUN_PRACTICE:
-            # Practice 2 uses associative test
+            # Practice 2 uses item test
             current_test_type = 'item'
         else:
             current_test_type = get_test_type(list_count - config.RUN_PRACTICE)
