@@ -18,9 +18,9 @@ IPI_lower = 500   # Inter-pair interval lower bound
 IPI_upper = 800  # Inter-pair interval upper bound
 
 # Distractor parameters
-NDIST = 3  # Number of distractor problems (0 = no distractor)
-D_RESP_TIME = 5000  # Response time for each distractor problem
-D_BLANK_TIME = 250  # Blank time between distractor problems
+NDIST = 8  # Number of arrow trials (0 = no distractor)
+D_RESP_TIME = 2000  # Response time for each arrow trial
+D_BLANK_TIME = 250  # Blank time between arrow trials
 DIST_MIN = 1  # Minimum number in math problems
 DIST_MAX = 9  # Maximum number in math problems
 

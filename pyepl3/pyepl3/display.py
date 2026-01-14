@@ -558,7 +558,8 @@ class VideoTrack(LogTrack):
     def showInstructions(self, text: str,
                         clk: Optional[PresentationClock] = None,
                         size: int = 24,
-                        color: Color = WHITE):
+                        color: Color = WHITE,
+                        font: Optional[str] = None):
         """
         Display instructions and wait for keypress (SPACE or RETURN).
 
@@ -570,6 +571,7 @@ class VideoTrack(LogTrack):
             clk: PresentationClock (optional)
             size: Font size
             color: Text color
+            font: Path to font file (optional)
 
         Returns:
             Timestamp when key was pressed
@@ -588,7 +590,7 @@ class VideoTrack(LogTrack):
         self.clear(BLACK)
 
         # Create instruction text
-        instruction_text = Text(text, size=size, color=color)
+        instruction_text = Text(text, size=size, color=color, font=font)
 
         # Show centered
         self.showCentered(instruction_text, clk)

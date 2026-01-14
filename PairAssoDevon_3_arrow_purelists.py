@@ -23,6 +23,9 @@ from pyepl3.pyepl3 import (
     TextPool
 )
 
+# Get font path relative to this script (works on any device)
+FONT_PATH = str(Path(__file__).parent / "resources" / "LucidaGrande.ttc")
+
 #########################################
 # Instruction Text
 #########################################
@@ -51,10 +54,10 @@ You will now study a new list of words
 Press ENTER to continue"""
 
 INSTRUCT_ARROW_TASK = """
-You will now see arrows pointing left < or right >
+You will now see arrows pointing left ← or right →
 
-Press the z key when you see <
-Press the / key when you see >
+Press the LEFT ARROW key when you see ←
+Press the RIGHT ARROW key when you see →
 
 Respond as quickly as you can
 
@@ -328,12 +331,12 @@ def main():
 
         # Show instructions
         print(f"\n=== LIST {list_count}: Showing instructions ===")
-        video.showInstructions(instructions, clk=clock)
+        video.showInstructions(instructions, clk=clock, font=FONT_PATH)
 
         # Show title
         print(f"=== Showing title screen ===")
         video.clear(BLACK)
-        title_text = Text(title, size=36, color=WHITE)
+        title_text = Text(title, size=36, color=WHITE, font=FONT_PATH)
         video.showCentered(title_text, clock)
         video.updateScreen(clock)
 
@@ -395,7 +398,7 @@ def main():
             print(f"  Showing word 1: {probe1.name}")
             start_time = clock.get()
 
-            stim1 = Text(probe1.name, size=72, color=WHITE)
+            stim1 = Text(probe1.name, size=72, color=WHITE, font=FONT_PATH)
             video.clear(BLACK)
             show_proportional(video, stim1, 0.5, 0.5, clock)
             video.updateScreen(clock)
@@ -412,7 +415,7 @@ def main():
             print(f"  Showing word 2: {probe2.name}")
             start_time = clock.get()
 
-            stim2 = Text(probe2.name, size=72, color=WHITE)
+            stim2 = Text(probe2.name, size=72, color=WHITE, font=FONT_PATH)
             video.clear(BLACK)
             show_proportional(video, stim2, 0.5, 0.5, clock)
             video.updateScreen(clock)
@@ -427,7 +430,7 @@ def main():
 
             # Show fixation cross during jittered IPI
             video.clear(BLACK)
-            fixation = Text("+", size=120, color=WHITE)
+            fixation = Text("+", size=92, color=WHITE, font=FONT_PATH)
             show_proportional(video, fixation, 0.5, 0.49, clock)
             video.updateScreen(clock)
 
@@ -455,30 +458,30 @@ def main():
 
         if config.NDIST > 0:
             if list_count == 1 and config.RUN_PRACTICE > 0:
-                video.showInstructions(INSTRUCT_ARROW_TASK, clk=clock)
+                video.showInstructions(INSTRUCT_ARROW_TASK, clk=clock, font=FONT_PATH)
 
             print(f"\n=== STARTING ARROW DISTRACTOR: {config.NDIST} trials ===")
 
-            # Create button chooser for arrow responses
-            arrow_bc = ButtonChooser(Key("z"), Key("/"), track=keyboard)
+            # Create button chooser for arrow responses (arrow keys)
+            arrow_bc = ButtonChooser(Key("LEFT"), Key("RIGHT"), track=keyboard)
 
             for arrow_trial in range(config.NDIST):
                 # Randomly choose left or right arrow
                 is_left = random.choice([True, False])
-                arrow_char = "<" if is_left else ">"
-                correct_key = "z" if is_left else "/"
+                arrow_char = "←" if is_left else "→"
+                correct_key = "LEFT" if is_left else "RIGHT"
 
                 # Show arrow (centered, fixed position)
                 video.clear(BLACK)
-                arrow_text = Text(arrow_char, size=120, color=WHITE)
+                arrow_text = Text(arrow_char, size=120, color=WHITE, font=FONT_PATH)
                 show_proportional(video, arrow_text, 0.5, 0.45, clock)
                 # Labels
-                left_arrowLabel = Text("< [z]", size=28, color=WHITE)
-                right_arrowLabel = Text("> [/]", size=28, color=WHITE)
+                left_arrowLabel = Text("← [←]", size=28, color=WHITE, font=FONT_PATH)
+                right_arrowLabel = Text("→ [→]", size=28, color=WHITE, font=FONT_PATH)
                 show_proportional(video, left_arrowLabel, 0.20, 0.90, clock)
                 show_proportional(video, right_arrowLabel, 0.80, 0.90, clock)
                 video.updateScreen(clock)
-                
+
                 # Get presentation time
                 pres_time = clock.get()
                 prob_end = pres_time + config.D_RESP_TIME
@@ -491,11 +494,11 @@ def main():
 
                 if button is not None:
                     user_response = button.key_name
-                    # Convert key to arrow character (case-insensitive comparison)
-                    response_arrow = "<" if user_response.lower() == "z" else ">"
+                    # Convert key to arrow character
+                    response_arrow = "←" if user_response == "LEFT" else "→"
 
                     # Show response arrow below prompt (prompt stays in same position)
-                    response_text = Text(response_arrow, size=120, color=WHITE)
+                    response_text = Text(response_arrow, size=120, color=WHITE, font=FONT_PATH)
                     show_proportional(video, response_text, 0.5, 0.60, clock)
                     video.updateScreen(clock)
 
@@ -506,9 +509,9 @@ def main():
                     pygame.time.wait(int(remaining))
                     clock._virtual_time = prob_end  # Sync virtual clock
 
-                # Score response (case-insensitive comparison)
+                # Score response
                 if user_response is not None:
-                    is_correct = (user_response.lower() == correct_key)
+                    is_correct = (user_response == correct_key)
                     correct_str = "correct" if is_correct else "incorrect"
                 else:
                     is_correct = False
@@ -553,9 +556,9 @@ def main():
 
         # Show appropriate instruction
         if current_test_type == 'assoc':
-            video.showInstructions(INSTRUCT_RECOGNITION_ASSOC, clk=clock)
+            video.showInstructions(INSTRUCT_RECOGNITION_ASSOC, clk=clock, font=FONT_PATH, size=20)
         else:
-            video.showInstructions(INSTRUCT_RECOGNITION_ITEM, clk=clock)
+            video.showInstructions(INSTRUCT_RECOGNITION_ITEM, clk=clock, font=FONT_PATH, size=20)
 
         #########################################
         # Create test trials - Pure Lists
@@ -661,12 +664,12 @@ def main():
 
             if current_test_type == 'item':
                 # Item Recognition: Show single word
-                stim = Text(trial['word'], size=48, color=WHITE)
+                stim = Text(trial['word'], size=48, color=WHITE, font=FONT_PATH)
                 show_proportional(video, stim, 0.5, 0.5, clock)
 
                 # Labels
-                left_label = Text(f"{inst_item_left} [z]", size=28, color=WHITE)
-                right_label = Text(f"{inst_item_right} [/]", size=28, color=WHITE)
+                left_label = Text(f"{inst_item_left} [z]", size=28, color=WHITE, font=FONT_PATH)
+                right_label = Text(f"{inst_item_right} [/]", size=28, color=WHITE, font=FONT_PATH)
                 show_proportional(video, left_label, 0.20, 0.90, clock)
                 show_proportional(video, right_label, 0.80, 0.90, clock)
 
@@ -715,12 +718,12 @@ def main():
 
             else:  # current_test_type == 'assoc'
                 # Associative Recognition: Show two words
-                stim = Text(f"{trial['word1']}  {trial['word2']}", size=48, color=WHITE)
+                stim = Text(f"{trial['word1']}  {trial['word2']}", size=48, color=WHITE, font=FONT_PATH)
                 show_proportional(video, stim, 0.5, 0.5, clock)
 
                 # Labels
-                left_label = Text(f"{inst_assoc_left} [z]", size=28, color=WHITE)
-                right_label = Text(f"{inst_assoc_right} [/]", size=28, color=WHITE)
+                left_label = Text(f"{inst_assoc_left} [z]", size=28, color=WHITE, font=FONT_PATH)
+                right_label = Text(f"{inst_assoc_right} [/]", size=28, color=WHITE, font=FONT_PATH)
                 show_proportional(video, left_label, 0.20, 0.90, clock)
                 show_proportional(video, right_label, 0.80, 0.90, clock)
 
@@ -786,7 +789,7 @@ def main():
 
     # Show completion message
     completion_text = Text("Experiment Complete!\n\nThank you for participating.",
-                          size=36, color=WHITE)
+                          size=36, color=WHITE, font=FONT_PATH)
     video.clear(BLACK)
     video.showCentered(completion_text, clock)
     video.updateScreen(clock)
