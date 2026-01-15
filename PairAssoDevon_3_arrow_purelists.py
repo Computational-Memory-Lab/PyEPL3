@@ -33,7 +33,14 @@ FONT_PATH = str(Path(__file__).parent / "resources" / "LucidaGrande.ttc")
 INSTRUCT_PRACTICE = """
 You will see a list of words, grouped in pairs
 
-Study the word pairs and try to remember them
+Study the word pairs and try to remember them.
+Studies have indicated that forming mental images of words 
+significantly improves one's memory for them. 
+Please try this technique for the next word pairs. 
+Form a mental image with both of the words interacting together 
+when you are presented with a word pair. 
+For example, for the word pair CAT–DOG, you could 
+imagine the cat chasing the dog.
 
 After, you will be tested on the words
 
@@ -43,6 +50,7 @@ Press ENTER to continue"""
 
 INSTRUCT_ROUND1_ARROW = """
 You will now study a new list of words
+Remember to form mental images of the word pairs
 
 THIS IS NO LONGER PRACTICE
 
@@ -50,6 +58,7 @@ Press ENTER to continue"""
 
 INSTRUCT_ROUNDN_ARROW = """
 You will now study a new list of words
+Remember to form mental images of the word pairs
 
 Press ENTER to continue"""
 
