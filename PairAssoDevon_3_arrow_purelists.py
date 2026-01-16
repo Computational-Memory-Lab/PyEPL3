@@ -485,8 +485,8 @@ def main():
                 arrow_text = Text(arrow_char, size=120, color=WHITE, font=FONT_PATH)
                 show_proportional(video, arrow_text, 0.5, 0.45, clock)
                 # Labels
-                left_arrowLabel = Text("← [←]", size=28, color=WHITE, font=FONT_PATH)
-                right_arrowLabel = Text("→ [→]", size=28, color=WHITE, font=FONT_PATH)
+                left_arrowLabel = Text("← [left arrow key]", size=28, color=WHITE, font=FONT_PATH)
+                right_arrowLabel = Text("→ [right arrow key]", size=28, color=WHITE, font=FONT_PATH)
                 show_proportional(video, left_arrowLabel, 0.20, 0.90, clock)
                 show_proportional(video, right_arrowLabel, 0.80, 0.90, clock)
                 video.updateScreen(clock)
