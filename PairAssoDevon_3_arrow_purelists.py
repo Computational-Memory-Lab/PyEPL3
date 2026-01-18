@@ -308,8 +308,10 @@ def main():
     # Build Stimulus Pools
     #########################################
 
-    probe_disp_pool = TextPool("raw_pools/nouns.txt")
-    probe_disp_pool_id = TextPool("raw_pools/nouns.txt")
+    #probe_disp_pool = TextPool("raw_pools/nouns.txt")
+    #probe_disp_pool_id = TextPool("raw_pools/nouns.txt")
+    probe_disp_pool = TextPool("raw_pools/english_lexicon_nouns_sample.txt")
+    probe_disp_pool_id = TextPool("raw_pools/english_lexicon_nouns_sample.txt")
 
     random.shuffle(probe_disp_pool)
 
