@@ -39,7 +39,11 @@ significantly improves one's memory for them.
 Please try this technique for the next word pairs. 
 Form a mental image with both of the words interacting together 
 when you are presented with a word pair. 
-For example, for the word pair CAT–DOG, you could 
+For example, for the word pair 
+
+CAT–DOG
+
+you could 
 imagine the cat chasing the dog.
 
 After, you will be tested on the words
@@ -75,8 +79,8 @@ Press ENTER to continue"""
 INSTRUCT_RECOGNITION_ASSOC = """
 Now you will see pairs of words based on pairs you just learned
 
-If the test pair is the same as you learned, press corresponding key to INTACT
-If the test pair words come from different pairs, press corresponding key to RECOMBINED
+If the test pair is the same as you learned, press the corresponding key to SAME PAIR
+If the test pair words come from different pairs, press corresponding key to DIFFERENT PAIR
 
 For example, if you studied pairs:
 
@@ -310,8 +314,8 @@ def main():
 
     #probe_disp_pool = TextPool("raw_pools/nouns.txt")
     #probe_disp_pool_id = TextPool("raw_pools/nouns.txt")
-    probe_disp_pool = TextPool("raw_pools/english_lexicon_nouns_2_syllable.txt")
-    probe_disp_pool_id = TextPool("raw_pools/english_lexicon_nouns_2_syllable.txt")
+    probe_disp_pool = TextPool("raw_pools/filtered_words.txt")
+    probe_disp_pool_id = TextPool("raw_pools/filtered_words.txt")
 
     random.shuffle(probe_disp_pool)
 
