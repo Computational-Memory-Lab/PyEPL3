@@ -333,11 +333,6 @@ def main():
             instructions = INSTRUCT_PRACTICE
             title = "Get ready for the Practice Round!"
             num_pairs=config.NPAIRS_PRACTICE
-        elif list_count == (1 + config.RUN_PRACTICE):
-            log.logMessage(f'LIST\t{list_count-config.RUN_PRACTICE}')
-            instructions = INSTRUCT_ROUND1_ARROW
-            title = f"Get ready for Round 1 of {config.NLISTS}!"
-            num_pairs=config.NPAIRS
         else:
             log.logMessage(f'LIST\t{list_count-config.RUN_PRACTICE}')
             instructions = INSTRUCT_ROUNDN_ARROW
