@@ -14,7 +14,7 @@ import math
 import argparse
 from pathlib import Path
 import pygame
-import random
+
 
 # Import PyEPL3
 from pyepl3.pyepl3 import (
