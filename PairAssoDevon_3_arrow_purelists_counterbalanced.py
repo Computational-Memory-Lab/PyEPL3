@@ -316,10 +316,10 @@ def main():
     # Main Experiment Loop
     #########################################
 
-    #########################################
-    # Optional Practice Lists
-    #########################################
-    if config.RUN_PRACTICE > 0:
+        #########################################
+        # Optional Practice Lists
+        #########################################
+        if config.RUN_PRACTICE > 0:
         ### Practice 1 (Associative) ###
     
         # Show instructions
@@ -652,7 +652,7 @@ def main():
             pygame.event.clear()
 
             test_trial_count += 1  
-        """
+        
         ### Practice 2 (Item) ###
     
         # Show instructions
@@ -860,47 +860,58 @@ def main():
             video.updateScreen(clock)
             clock.delay(500)  # Brief pause after distractor
 
+        # Item Recognition: all studied words (OLD) + equal NEW foils
         video.showInstructions(INSTRUCT_RECOGNITION_ITEM, clk=clock, font=FONT_PATH, size=20)
 
-        # Item Recognition: all studied words (OLD) + equal NEW foils
+        # --- Build OLD items (all studied words) ---
         item_words = []
         for pair in studied_pairs:
             item_words.append({'word': pair['word1'], 'word_id': pair['word1_id']})
             item_words.append({'word': pair['word2'], 'word_id': pair['word2_id']})
 
-            random.shuffle(item_words)
-            n_old = len(item_words)
+        random.shuffle(item_words)
+        n_old = len(item_words)
 
-            # Add OLD item trials
-            for word_info in item_words:
-                test_trials.append({
-                    'type': 'item',
-                    'word': word_info['word'],
-                    'word_id': word_info['word_id'],
-                    'target': 1,  # OLD
-                    'is_old': True
-                })
+        item_test_trials = []
 
-            # Add NEW foil trials (equal to number of old)
-            for i in range(n_old):
-                foil_word = probe_disp_pool.pop(0)
-                foil_id = probe_disp_pool_id.isInPool(name=foil_word.name) + 1
-                test_trials.append({
-                    'type': 'item',
-                    'word': foil_word.name,
-                    'word_id': foil_id,
-                    'target': 0,  # NEW
-                    'is_old': False
-                })
+        # OLD trials
+        for wi in item_words:
+            item_test_trials.append({
+                'type': 'item',
+                'word': wi['word'],
+                'word_id': wi['word_id'],
+                'target': 1,   # OLD
+                'is_old': True
+            })
 
-            print(f"Test trials: {len(test_trials)} item recognition ({n_old} old, {n_old} new)")
+        # NEW foil trials (equal count)
+        for _ in range(n_old):
+            foil_word = probe_disp_pool.pop(0)
+            foil_id = probe_disp_pool_id.isInPool(name=foil_word.name) + 1
+            item_test_trials.append({
+                'type': 'item',
+                'word': foil_word.name,
+                'word_id': foil_id,
+                'target': 0,   # NEW
+                'is_old': False
+            })
 
- 
-            # Item Recognition: Show single word
+        random.shuffle(item_test_trials)
+        print(f"Item test trials: {len(item_test_trials)} ({n_old} old, {n_old} new)")
+
+        # --- Present item test trials ---
+        for trial in item_test_trials:
+            pygame.event.clear()
+            video.clear(BLACK)
+            video.updateScreen(clock)
+
+            # Debug (optional)
+            # print("TRIAL KEYS:", trial.keys())
+            # print("TRIAL:", trial)
+
             stim = Text(trial['word'], size=48, color=WHITE, font=FONT_PATH)
             show_proportional(video, stim, 0.5, 0.5, clock)
 
-            # Labels
             left_label = Text(f"{inst_item_left} [z]", size=28, color=WHITE, font=FONT_PATH)
             right_label = Text(f"{inst_item_right} [/]", size=28, color=WHITE, font=FONT_PATH)
             show_proportional(video, left_label, 0.20, 0.90, clock)
@@ -908,53 +919,40 @@ def main():
 
             video.updateScreen(clock)
 
-            # Get timestamp BEFORE waiting for response
             pres_time = clock.get()
-            print(f"[TEST] Trial {test_trial_count} ITEM: {trial['word']} | PresentTime: {pres_time}ms | Timeout: {config.C_RESP_TIME}ms")
 
-            # Wait for response
             bc = ButtonChooser(Key(config.keyLeft), Key(config.keyRight), track=keyboard)
             button, button_time = bc.waitWithTime(clock, timeout=config.C_RESP_TIME)
 
-            print(f"[TEST] Response: {button.key_name if button else 'TIMEOUT'} | ResponseTime: {button_time}ms | RT: {button_time - pres_time if button else -1}ms")
-
-            # Calculate RT
             if button:
                 rt = button_time - pres_time
-                # Response coding based on counterbalancing
                 if keychoice == 0:
-                    # Left=OLD(1), Right=NEW(0)
-                    if button.key_name == config.keyLeft:
-                        response = 1  # OLD
-                    else:
-                        response = 0  # NEW
+                    response = 1 if button.key_name == config.keyLeft else 0  # left=OLD
                 else:
-                    # Left=NEW(0), Right=OLD(1)
-                    if button.key_name == config.keyLeft:
-                        response = 0  # NEW
-                    else:
-                        response = 1  # OLD
+                    response = 0 if button.key_name == config.keyLeft else 1  # left=NEW
             else:
                 rt = -1
                 response = -1
 
-            # Score
             recog_acc = 1 if response == trial['target'] else 0
 
-            # Log
-            log.logMessage(f"P2\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-            recoglog.logMessage(f"P2\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t{response}\t{recog_acc}\t{rt}")
-                  
-        # Clear and wait
-        video.clear(BLACK)
-        video.updateScreen(clock)
-        clock.delay(config.C_BLANK_TIME)
+            log.logMessage(
+                f"P2\t{test_trial_count}\tITEM\t{trial['word']}\t{trial['word_id']}\t"
+                f"{trial['target']}\t{response}\t{recog_acc}\t{rt}"
+            )
+            recoglog.logMessage(
+                f"P2\t{test_trial_count}\tITEM\t{trial['word_id']}\t{trial['target']}\t"
+                f"{response}\t{recog_acc}\t{rt}"
+            )
 
-        # Clear pygame event queue to prevent progressive lag across test trials
-        pygame.event.clear()
+            video.clear(BLACK)
+            video.updateScreen(clock)
+            clock.delay(config.C_BLANK_TIME)
 
-        test_trial_count += 1
-        """
+            # Clear pygame event queue to prevent progressive lag across test trials
+            pygame.event.clear()
+
+            test_trial_count += 1
     #################################################
     # Actual Task - Lists come in randomized triplets
     #################################################
