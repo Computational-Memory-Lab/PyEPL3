@@ -316,10 +316,10 @@ def main():
     # Main Experiment Loop
     #########################################
 
-        #########################################
-        # Optional Practice Lists
-        #########################################
-        if config.RUN_PRACTICE > 0:
+    #########################################
+    # Optional Practice Lists
+    #########################################
+    if config.RUN_PRACTICE > 0:
         ### Practice 1 (Associative) ###
     
         # Show instructions
