@@ -1405,7 +1405,7 @@ def main():
         # Show instructions based on list number
         log.logMessage(f'LIST\t{list_count}')
         instructions = INSTRUCT_ROUNDN_ARROW
-        title = f"Get ready for Round {list_count + 1} of {config.NLISTS}!"
+        title = f"Get ready for Round {list_count} of {config.NLISTS}!"
         num_pairs=config.NPAIRS
 
         # Show instructions
@@ -1843,7 +1843,7 @@ def main():
         # Show instructions based on list number
         log.logMessage(f'LIST\t{list_count}')
         instructions = INSTRUCT_ROUNDN_ARROW
-        title = f"Get ready for Round {list_count + 2} of {config.NLISTS}!"
+        title = f"Get ready for Round {list_count} of {config.NLISTS}!"
         num_pairs=config.NPAIRS
 
         # Show instructions
