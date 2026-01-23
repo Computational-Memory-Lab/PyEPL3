@@ -7,9 +7,9 @@ This config file sets parameters for the paired associate memory experiment.
 from pyepl3.pyepl3 import Key
 
 # Experiment structure
-NLISTS = 15  # Number of study-test lists
+NLISTS = 8  # Number of study-test lists
 RUN_PRACTICE = 2  # Whether to run practice list-pair (2) or not (0)
-NPAIRS = 16  # Number of word pairs per list
+NPAIRS = 32  # Number of word pairs per list
 NPAIRS_PRACTICE = 8 # Number of word pairs per practice list
 
 # Timing parameters (in milliseconds)
